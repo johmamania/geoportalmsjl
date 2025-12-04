@@ -1,0 +1,89 @@
+<div class="example-container">
+  <mat-sidenav-container class="example-sidenav-container">
+    <mat-sidenav #wmsSidenav mode="side" position="end" opened="false" class="wms-sidenav">
+      <div class="wms-menu-header">
+        <h2>Capas WMS</h2>
+        <button mat-icon-button (click)="wmsSidenav.close()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="wms-menu-content">
+        <ng-container *ngFor="let category of getLayersByCategory() | keyvalue">
+          <div class="wms-category">
+            <h3 class="wms-category-title">{{ category.key }}</h3>
+            <mat-list>
+              <mat-list-item *ngFor="let layer of category.value">
+                <mat-checkbox
+                  [checked]="isWmsLayerVisible(layer.name)"
+                  (change)="toggleWmsLayer(layer)"
+                  class="wms-layer-checkbox">
+                  {{ layer.displayName }}
+                </mat-checkbox>
+              </mat-list-item>
+            </mat-list>
+            <mat-divider></mat-divider>
+          </div>
+        </ng-container>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <mat-toolbar>
+        <div class="titulo_sistema">
+          <h1>Sistema GeoPortal de San Juan de Lurigancho <span class="version">v{{version}}</span></h1>
+        </div>
+<!--
+        <div class="buscar">
+          <mat-form-field appearance="fill">
+            <mat-label>Buscar distrito</mat-label>
+            <input
+              #distritoInput
+              matInput
+              type="text"
+              placeholder="Ej: San Juan de Lurigancho"
+              (keyup.enter)="buscarDistrito(distritoInput.value)"
+            />
+          </mat-form-field>
+        </div>-->
+
+        <span class="example-spacer"></span>
+
+        <!-- Botón de selección de tipo de mapa -->
+        <button mat-button [matMenuTriggerFor]="mapTypeMenu" class="map-type-button">
+          <mat-icon>map</mat-icon>
+          {{ getCurrentMapTypeName() }}
+          <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+
+      
+        <button mat-button class="login-button" (click)="iniciarSesion()">
+          <mat-icon>send</mat-icon>Iniciar Sesión
+        </button>
+      </mat-toolbar>
+
+      <!-- Menú de tipos de mapa -->
+      <mat-menu #mapTypeMenu="matMenu">
+        <button mat-menu-item *ngFor="let mapType of mapTypes"
+                (click)="changeMapType(mapType.id)"
+                [class.selected]="selectedMapType() === mapType.id">
+          <mat-icon>{{ mapType.icon }}</mat-icon>
+          <span>{{ mapType.name }}</span>
+          <mat-icon *ngIf="selectedMapType() === mapType.id" class="check-icon">check</mat-icon>
+        </button>
+      </mat-menu>
+
+      <div class="mapa-container">
+        <div class="mapa-content">
+
+          <div class="mapa-body">
+            <div id="map" class="mapa-mapa"></div>
+          </div>
+        </div>
+      </div>
+
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
+

@@ -1,0 +1,368 @@
+
+html,
+
+
+body {
+  height: 100%;
+}
+.login-wrapper {
+  padding: 8%;;
+  height: 100%;
+}
+.positronx {
+  text-decoration: none;
+
+}
+
+/* Estilo personalizado para el título de SweetAlert */
+.custom-swal-title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 35px;
+  /* Otros estilos deseados */
+}
+
+/* Estilo personalizado para la barra de progreso del temporizador */
+.swal2-progress-bar {
+  background-color: #7e47ff; /* Cambia el color de fondo de la barra de progreso */
+}
+
+
+.box {
+  box-shadow: 0 5px 10px rgb(250, 250, 250);
+  /* background-color: transparent; */
+  background-color: #060738fd;
+  width: 350px; /* Ancho personalizado */
+  height: 450px; /* Alto personalizado */
+  margin-top: 55%;
+  position: relative;
+  top: -20px;
+  opacity: 1;
+  float: left;
+  padding: 0px 10px 10px 10px;
+  border-radius: 10px;
+  transform: scale(1);
+  -webkit-transform: scale(1);
+  -ms-transform: scale(1);
+  z-index: 5;
+}
+
+.login-wrapper .example-form {
+  min-width: 100%;
+  max-width: 300px;
+  width: 100%;
+}
+.login-wrapper .example-full-width,
+.login-wrapper .btn-block {
+  width: 100%;
+}
+
+/* Estilos para los iconos en los campos de formulario */
+.login-wrapper mat-form-field mat-icon[matPrefix] {
+  color: #2196F3;
+  margin-right: 8px;
+}
+
+.login-wrapper mat-form-field:hover mat-icon[matPrefix] {
+  color: #42A5F5;
+}
+
+.login-wrapper mat-form-field.mat-focused mat-icon[matPrefix] {
+  color: #64B5F6;
+}
+
+/* Mejoras adicionales para los campos de formulario */
+.login-wrapper mat-form-field {
+  margin-bottom: 10px;
+}
+
+.login-wrapper mat-form-field .mat-form-field-label {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.login-wrapper mat-form-field .mat-form-field-outline {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.login-wrapper mat-form-field.mat-focused .mat-form-field-outline-thick {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.login-wrapper mat-form-field input {
+  color: #ffffff !important;
+}
+
+.login-wrapper mat-form-field input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+.login-wrapper mat-card-header mat-card-title {
+  font-size: 33px;
+  margin: 0;
+  color: #eeeeee;
+  font-weight: bold;
+}
+.login-wrapper .mat-card {
+  padding: 40px 70px 50px;
+}
+.login-wrapper .mat-stroked-button {
+  border: 1px solid currentColor;
+  line-height: 54px;
+}
+.login-wrapper .mat-form-field-appearance-legacy .mat-form-field-infix {
+  padding: 0.8375em 0;
+}
+
+.custom-button {
+  padding: 13px 0;
+  font-size: 20px;
+  border-radius: 10px;
+  width: 100%;
+  background-color: rgb(146, 137, 8); /* Color verde */
+  color: white; /* Letras blancas */
+  border: 1px solid black; /* Borde negro */
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Sombra */
+  cursor: pointer; /* Cambia el cursor a una mano */
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s, border 0.3s; /* Transición suave */
+}
+
+.custom-button:hover {
+  background-color: rgb(9, 9, 127); /* Color azul al pasar el mouse */
+  box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada al pasar el mouse */
+}
+
+.custom-button:disabled {
+  background: linear-gradient(45deg, #02460c, #3d9044); /* Color gris cuando está deshabilitado */
+  cursor: not-allowed; /* Cambia el cursor a no permitido */
+}
+/* Estilo para el contenedor del progress bar */
+.progress-bar-container {
+  width: 300px; /* Ancho del contenedor */
+}
+
+/* Estilo para el buffer bar */
+.mat-progress-buffer-custom {
+  height: 20px; /* Altura de la barra de buffer */
+  background-color: rgb(0, 0, 0); /* Color de fondo del buffer */
+}
+
+.recaptcha-container {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente el contenido */
+  align-items: top; /* Centra verticalmente el contenido */
+  height: 90px; /* Ajusta la altura según sea necesario */
+}
+
+.footer {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, rgba(6, 7, 56, 0.95) 0%, rgba(8, 102, 126, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border-top: 2px solid rgba(74, 144, 226, 0.3);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px 0;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.copyright-icon {
+  font-size: 18px;
+  color: #4A90E2;
+  font-weight: bold;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+.footer-year {
+  font-weight: 700;
+  color: #4A90E2;
+  font-size: 18px;
+  text-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+}
+
+.footer-divider {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 300;
+}
+
+.footer-department {
+  color: #ffffff;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.footer-department:hover {
+  color: #64B5F6;
+  text-shadow: 0 0 8px rgba(100, 181, 246, 0.6);
+}
+
+.footer-acronym {
+  color: #4A90E2;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(74, 144, 226, 0.6);
+  transition: all 0.3s ease;
+}
+
+.footer-acronym:hover {
+  color: #64B5F6;
+  transform: scale(1.05);
+  text-shadow: 0 0 15px rgba(100, 181, 246, 0.8);
+}
+
+.footer-rights {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-text {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .footer-year,
+  .footer-acronym {
+    font-size: 15px;
+  }
+
+  .footer-rights {
+    font-size: 12px;
+  }
+
+  .footer-divider {
+    display: none;
+  }
+
+  .footer-text {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.add{
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 50%, #2E6DA4 100%);
+  color: #ffffff !important;
+  border: none;
+  width: 100%;
+  font-size: 20px !important;
+  padding: 12px 0;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 500;
+}
+
+.add mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.add:hover{
+  background: linear-gradient(135deg, #3a9b37 0%, #46d58d 50%, #1ba00f 100%);
+  color: #ffffff !important;
+  border: none;
+  width: 100%;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(74, 144, 226, 0.4);
+}
+
+.add:hover mat-icon {
+  transform: translateX(4px);
+}
+
+.add:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.volver{
+  background: linear-gradient(135deg, #984ae2 0%, #5935bd 50%, #190322 100%);
+  color: #ffffff !important;
+  border: none;
+  width: 100%;
+  font-size: 20px !important;
+  padding: 12px 0;
+  margin-top: 10px;
+}
+.volver:hover{
+  background: linear-gradient(135deg, #d5e641 0%, #d5d346 50%, #727e09 100%);
+  color: #ffffff !important;
+  border: none;
+  width: 100%;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(74, 144, 226, 0.4);
+}
+.volver:active{
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.volver mat-icon{
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+.volver:hover mat-icon{
+  transform: translateX(4px);
+}
+.volver:active mat-icon{
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

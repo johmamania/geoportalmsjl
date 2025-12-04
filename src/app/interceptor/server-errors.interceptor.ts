@@ -1,0 +1,106 @@
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from "@angular/common/http";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { Router } from "@angular/router";
+import { EMPTY, Observable, catchError, retry, tap } from "rxjs";
+import { environment } from "../../environments/environment";
+import { Injectable } from "@angular/core";
+import Swal from "sweetalert2";
+import { AdminAuthService } from "../services/admin-auth.service";
+
+
+@Injectable({
+    providedIn: 'root'
+})
+export class ServerErrorsInterceptor implements HttpInterceptor{
+    constructor(
+      //  private snackBar: MatSnackBar,
+        private router: Router,
+        private adminAuthService: AdminAuthService
+    ){}
+    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        // Verificar si el usuario es administrador
+        const isAdmin = this.adminAuthService.getIsAuthenticated();
+
+        return next.handle(req).pipe(retry(environment.RETRY))
+            .pipe(tap(event => {
+                if(event instanceof HttpResponse){
+                    if (event.body && event.body.error === true && event.body.errorMessage) {
+                        throw new Error(event.body.errorMessage);
+                    }/*else{
+                        this.snackBar.open('SUCCESS', 'INFO', { duration: 2000});
+                    }*/
+                }
+            })).pipe(catchError( (err) => {
+                // Solo mostrar errores detallados si el usuario es administrador
+                if (!isAdmin) {
+                    // Para usuarios no administradores, solo registrar en consola
+                    console.error('Error HTTP:', err);
+                    // No mostrar SweetAlert para usuarios normales
+                    return EMPTY;
+                }
+
+                // Para administradores, mostrar errores detallados
+                if(err.status === 400){
+                  Swal.fire({
+                    title: 'ERROR ' + err.status,
+                    text: err.error?.message || err.message || 'Error en la solicitud',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                 //   this.snackBar.open(err.message, 'ERROR 400', { duration: 5000 });
+                }
+                else if (err.status === 404){
+                  Swal.fire({
+                    title: 'ERROR ' + err.status,
+                    text: err.error?.message || 'Recurso no encontrado',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                   // this.snackBar.open('No existe el recurso', 'ERROR 404', { duration: 5000 });
+
+                }
+                else if (err.status === 403 ) {
+                    Swal.fire({
+                        title: 'ERROR ' + err.status,
+                        text: err.error?.message || 'Acceso denegado',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                    this.router.navigate(['/admin/login']);
+                 //   this.snackBar.open(err.error.message, 'ERROR 403', { duration: 5000 });
+                }else if  (err.status === 401) {
+                  Swal.fire({
+                      title: 'VALIDACION INCORRECTA ',
+                      text: err.error?.message || 'No autorizado',
+                      icon: 'warning',
+                      confirmButtonText: 'OK'
+                  });
+                    this.router.navigate(['/admin/login']);
+               //   this.snackBar.open(err.error.message, 'ERROR 403', { duration: 5000 });
+              }
+                else if (err.status === 500) {
+                  Swal.fire({
+                    title: 'ERROR ' + err.status,
+                    text: err.error?.message || 'Error interno del servidor',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                   // this.snackBar.open(err.error.message, 'ERROR 500', { duration: 5000 });
+
+                }
+                else {
+                  Swal.fire({
+                    title: 'ERROR ' + (err.status || 'DESCONOCIDO'),
+                    text: err.error?.message || err.message || 'Error desconocido',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                    //this.snackBar.open(err.error.message, 'ERROR', { duration: 5000 });
+                }
+
+                return EMPTY;
+            }));
+
+    }
+
+}

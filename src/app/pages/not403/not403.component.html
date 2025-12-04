@@ -1,0 +1,34 @@
+<div class="error-container">
+  <div class="error-content">
+   
+    <h1 class="error-title">
+      <span class="error-code">403</span>
+      <span class="error-text">Access Denied</span>
+    </h1>
+
+    <div class="error-message">
+      <mat-icon class="message-icon">person_off</mat-icon>
+      <p class="lead">
+        <strong>{{username}}</strong> no tiene permisos para acceder a esta página
+      </p>
+    </div>
+
+    <div class="error-description">
+      <p>Lo sentimos, pero no tienes los permisos necesarios para ver este contenido.</p>
+      <p>Por favor, contacta al administrador si crees que esto es un error.</p>
+    </div>
+
+    <button mat-raised-button
+            class="btn-home"
+            routerLink="/pages/inicio">
+      <mat-icon>home</mat-icon>
+      Volver al Inicio
+    </button>
+  </div>
+
+  <div class="error-background">
+    <div class="bg-circle circle-1"></div>
+    <div class="bg-circle circle-2"></div>
+    <div class="bg-circle circle-3"></div>
+  </div>
+</div>
