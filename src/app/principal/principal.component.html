@@ -1,0 +1,45 @@
+<div class="principal-container" style="background-image: url('assets/fondo.JPG');">
+  <div class="title">
+    <!--<img src="assets/logomsjl.jpg" alt="Logo Municipalidad" class="logo-img">-->
+    <h1>GeoPortal San Juan de Lurigancho</h1>
+    <p>Sistema de Información Geográfica para el Distrito de San Juan de Lurigancho</p>
+  </div>
+  <div class="categorias-container">
+    <div class="categorias-content">
+      <h3 class="categorias-title">Categorías de Ubicaciones</h3>
+      <div class="categorias-buttons">
+        <button mat-raised-button
+                color="accent"
+                class="categoria-button categoria-button-all"
+                (click)="verUbicaciones('0')">
+          <mat-icon>map</mat-icon>
+          <span>Ver Todas las Ubicaciones</span>
+        </button>
+        <button *ngFor="let categoria of categorias"
+                mat-raised-button
+                color="primary"
+                class="categoria-button"
+                (click)="verUbicaciones(categoria.id)">
+          <mat-icon>{{ getIconForCategory(categoria.id) }}</mat-icon>
+          <span>{{ categoria.nombre }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <footer>
+      <div class="footer-content">
+        <div class="footer-text">
+          <span class="footer-entity">Municipalidad Distrital de San Juan de Lurigancho</span>
+          <span class="footer-divider">|</span>
+          <span class="footer-system">Sistema GeoPortal de Información v{{version}}</span>
+          <span class="footer-divider">|</span>
+          <span class="footer-year">© {{year}}</span>
+          <span class="footer-system"> Todos los derechos reservados</span>
+          <button mat-raised-button color="primary" (click)="login()">Iniciar Sesión</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>

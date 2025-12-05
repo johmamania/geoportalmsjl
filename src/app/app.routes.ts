@@ -5,11 +5,13 @@ import { GeoportalComponent } from './geoportal/geoportal.component';
 import { AdminComponent } from './admin/admin.component';
 
 import { adminGuard } from './guard/admin.guard';
+import { PrincipalComponent } from './principal/principal.component';
 
 
 export const routes: Routes = [
-  { path: '', component: GeoportalComponent },
+  { path: '', component: PrincipalComponent },
   { path: 'geoportal', component: GeoportalComponent },
+  { path: 'geoportal/:id', component: GeoportalComponent },
   {
     path: 'admin/login',
     component: LoginComponent,

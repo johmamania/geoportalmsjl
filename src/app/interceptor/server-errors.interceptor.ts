@@ -15,7 +15,8 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
     constructor(
       //  private snackBar: MatSnackBar,
         private router: Router,
-        private adminAuthService: AdminAuthService
+        private adminAuthService: AdminAuthService,
+        private snackBar: MatSnackBar
     ){}
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         // Verificar si el usuario es administrador
@@ -50,13 +51,8 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
                  //   this.snackBar.open(err.message, 'ERROR 400', { duration: 5000 });
                 }
                 else if (err.status === 404){
-                  Swal.fire({
-                    title: 'ERROR ' + err.status,
-                    text: err.error?.message || 'Recurso no encontrado',
-                    icon: 'warning',
-                    confirmButtonText: 'OK'
-                });
-                   // this.snackBar.open('No existe el recurso', 'ERROR 404', { duration: 5000 });
+
+                    this.snackBar.open('No existe el recurso', 'ERROR 404', { duration: 5000 });
 
                 }
                 else if (err.status === 403 ) {

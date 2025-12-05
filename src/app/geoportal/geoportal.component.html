@@ -56,9 +56,9 @@
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 
-      
-        <button mat-button class="login-button" (click)="iniciarSesion()">
-          <mat-icon>send</mat-icon>Iniciar Sesión
+
+        <button mat-button class="login-button" (click)="volverAlPortal()">
+          <mat-icon>send</mat-icon>Volver al Portal
         </button>
       </mat-toolbar>
 
@@ -82,42 +82,45 @@
         </div>
       </div>
 
-      <!-- Botón flotante de leyenda -->
-      <button mat-fab 
-              color="primary" 
+      <!-- Botón flotante de leyenda (solo en móvil) -->
+      <button mat-fab
+              color="primary"
               class="legend-button"
+              *ngIf="isMobile()"
               (click)="toggleLegend()"
               matTooltip="Ver leyenda de categorías">
         <mat-icon>{{ showLegend() ? 'close' : 'info' }}</mat-icon>
       </button>
 
       <!-- Panel de leyenda -->
-      <div class="legend-panel" *ngIf="showLegend()">
+      <div class="legend-panel" [class.legend-panel-mobile]="isMobile()" [class.legend-panel-desktop]="!isMobile()" [class.legend-panel-open]="showLegend()">
         <div class="legend-header">
           <h3>Leyenda de Categorías</h3>
-          <button mat-icon-button (click)="toggleLegend()" class="legend-close">
+          <button mat-icon-button (click)="toggleLegend()" class="legend-close" *ngIf="isMobile()">
             <mat-icon>close</mat-icon>
           </button>
         </div>
         <div class="legend-content">
-          <div class="legend-item">
-            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png" 
-                 alt="Punto de Reunión" 
+          <!-- Botón Ver Todas -->
+          <button mat-raised-button
+                  class="legend-button-item"
+                  [class.active]="categoryId === null || categoryId === '0'"
+                  (click)="filtrarPorCategoria('0')">
+            <mat-icon>map</mat-icon>
+            <span>Ver Todas las Ubicaciones</span>
+          </button>
+
+          <!-- Botones de categorías -->
+          <button mat-raised-button
+                  *ngFor="let categoria of getCategorias()"
+                  class="legend-button-item"
+                  [class.active]="categoryId === categoria.id"
+                  (click)="filtrarPorCategoria(categoria.id)">
+            <img [src]="getIconUrlByCategoryId(categoria.id)"
+                 [alt]="categoria.nombre"
                  class="legend-icon">
-            <span class="legend-text">Punto de Reunión</span>
-          </div>
-          <div class="legend-item">
-            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" 
-                 alt="Punto de Referencia" 
-                 class="legend-icon">
-            <span class="legend-text">Punto de Referencia</span>
-          </div>
-          <div class="legend-item">
-            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png" 
-                 alt="Punto de Interés" 
-                 class="legend-icon">
-            <span class="legend-text">Punto de Interés</span>
-          </div>
+            <span>{{ categoria.nombre }}</span>
+          </button>
         </div>
       </div>
 

@@ -12,7 +12,7 @@ import Point from 'ol/geom/Point';
 import { Style, Icon } from 'ol/style';
 import { AfterViewInit, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { MaterialModule } from '../material/material.module';
-import { EventType, RouterOutlet } from '@angular/router';
+import { EventType, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { WmsService } from '../services/wms.service';
@@ -22,6 +22,7 @@ import { MapDataService } from '../services/map-data.service';
 import { MapPoint } from '../model/map-point';
 import BaseEvent from 'ol/events/Event';
 import { EventTypes } from 'ol/Observable';
+import { CategoriasService } from '../services/categorias.service';
 
 
 @Component({
@@ -41,6 +42,9 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
   wmsLayersMenuOpen: boolean = false;
   selectedMapType = signal<string>('osm');
   showLegend = signal<boolean>(false);
+  categoryId: string | null = null; // ID de categoría recibido de la ruta
+  isMobile = signal<boolean>(false); // Detecta si es móvil
+  private resizeHandler = () => this.checkIfMobile(); // Referencia para poder remover el listener
 
   // Tipos de mapas disponibles
   mapTypes = [
@@ -106,14 +110,72 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private wmsService: WmsService,
-    private mapDataService: MapDataService
+    private mapDataService: MapDataService,
+    private categoriasService: CategoriasService
   ) {
     this.version = environment.VERSION;
   }
 
   ngOnInit(): void {
-    // No cargar aquí, esperar a que el mapa esté listo
+    // Detectar si es móvil
+    this.checkIfMobile();
+    window.addEventListener('resize', this.resizeHandler);
+
+    // En desktop, mostrar la leyenda siempre
+    if (!this.isMobile()) {
+      this.showLegend.set(true);
+    }
+
+    // Obtener el parámetro id de la ruta
+    this.route.params.subscribe(params => {
+      this.categoryId = params['id'] || null;
+      console.log('Categoría recibida:', this.categoryId);
+
+      // Si hay un id y el mapa ya está inicializado, recargar los puntos
+      if (this.map && this.marcadorLayer) {
+        this.loadPointsFromSupabase();
+      }
+    });
+  }
+
+  /**
+   * Detecta si el dispositivo es móvil
+   */
+  private checkIfMobile(): void {
+    this.isMobile.set(window.innerWidth <= 768);
+  }
+
+  /**
+   * Obtiene las categorías del servicio
+   */
+  getCategorias() {
+    return this.categoriasService.getCategorias();
+  }
+
+  /**
+   * Obtiene la URL del icono según el id de categoría
+   */
+  getIconUrlByCategoryId(id: string): string {
+    const baseUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-';
+
+    if (id === '1') {
+      return `${baseUrl}blue.png`;
+    } else if (id === '2') {
+      return `${baseUrl}green.png`;
+    } else if (id === '3') {
+      return `${baseUrl}violet.png`;
+    } else {
+      return `${baseUrl}blue.png`;
+    }
+  }
+
+  /**
+   * Filtra los puntos por categoría y navega
+   */
+  filtrarPorCategoria(id: string): void {
+    this.router.navigate(['/geoportal', id]);
   }
 
   ngAfterViewInit(): void {
@@ -128,6 +190,7 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map) {
       this.map.setTarget(undefined);
     }
+    window.removeEventListener('resize', this.resizeHandler);
   }
 
   private initMap(): void {
@@ -324,13 +387,19 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     console.log('Iniciando carga de puntos desde Supabase...');
+    console.log('Filtro por categoría:', this.categoryId === '0' ? 'Todas las categorías' : `Categoría ${this.categoryId}`);
 
     // Usar getPointsSinAutorizacion para producción (sin requerir autenticación)
     this.mapDataService.getPointsSinAutorizacion().subscribe({
       next: (points) => {
         if (points && Array.isArray(points)) {
           console.log(`✅ Puntos cargados exitosamente: ${points.length} puntos`);
-          this.renderPointsOnMap(points);
+
+          // Filtrar puntos según el id de categoría
+          const filteredPoints = this.filterPointsByCategory(points);
+          console.log(`✅ Puntos filtrados: ${filteredPoints.length} puntos`);
+
+          this.renderPointsOnMap(filteredPoints);
         } else {
           console.warn('⚠️ No se recibieron puntos válidos');
         }
@@ -343,7 +412,12 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
           next: (points) => {
             if (points && Array.isArray(points)) {
               console.log(`✅ Puntos cargados (método alternativo): ${points.length} puntos`);
-              this.renderPointsOnMap(points);
+
+              // Filtrar puntos según el id de categoría
+              const filteredPoints = this.filterPointsByCategory(points);
+              console.log(`✅ Puntos filtrados: ${filteredPoints.length} puntos`);
+
+              this.renderPointsOnMap(filteredPoints);
             }
           },
           error: (err) => {
@@ -352,6 +426,21 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       }
     });
+  }
+
+  /**
+   * Filtra los puntos según el id de categoría recibido
+   * Si el id es '0' o null, retorna todos los puntos
+   * Si el id es '1', '2', o '3', filtra por esa categoría
+   */
+  private filterPointsByCategory(points: MapPoint[]): MapPoint[] {
+    // Si el id es '0' o null, mostrar todos los puntos
+    if (!this.categoryId || this.categoryId === '0') {
+      return points;
+    }
+
+    // Filtrar por categoría
+    return points.filter(point => point.category === this.categoryId);
   }
 
   /**
@@ -594,9 +683,9 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  iniciarSesion(): void {
-    this.router.navigate(['/admin/login']);
-    console.log('Iniciando sesión...');
+  volverAlPortal(): void {
+    this.router.navigate(['/']);
+    console.log('Volviendo al portal...');
   }
 
   /**

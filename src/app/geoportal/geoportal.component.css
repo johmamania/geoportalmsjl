@@ -285,7 +285,7 @@
   transform: scale(1.1);
 }
 
-/* Botón flotante de leyenda */
+/* Botón flotante de leyenda (solo móvil) */
 .legend-button {
   position: fixed;
   bottom: 30px;
@@ -302,14 +302,34 @@
 /* Panel de leyenda */
 .legend-panel {
   position: fixed;
-  bottom: 100px;
-  right: 30px;
-  width: 280px;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 999;
+}
+
+/* Panel en desktop: siempre visible */
+.legend-panel-desktop {
+  bottom: 30px;
+  right: 30px;
+  width: 300px;
   animation: slideInRight 0.3s ease-out;
+}
+
+/* Panel en móvil: solo cuando está abierto */
+.legend-panel-mobile {
+  bottom: 100px;
+  right: 30px;
+  width: calc(100% - 60px);
+  max-width: 300px;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.legend-panel-mobile.legend-panel-open {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 @keyframes slideInRight {
@@ -346,18 +366,45 @@
 
 .legend-content {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.legend-item {
+.legend-button-item {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 20px;
+  min-height: 60px;
+  justify-content: flex-start;
+  text-transform: capitalize;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.legend-item:last-child {
-  border-bottom: none;
+.legend-button-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.legend-button-item.active {
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+}
+
+.legend-button-item.active mat-icon,
+.legend-button-item.active span {
+  color: #ffffff;
+}
+
+.legend-button-item mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
 }
 
 .legend-icon {
@@ -366,10 +413,24 @@
   object-fit: contain;
 }
 
-.legend-text {
+.legend-button-item span {
   font-size: 14px;
-  color: #333;
   font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .legend-panel-desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .legend-panel-mobile {
+    display: none;
+  }
 }
 
 /* Estilos para el menú de capas WMS */

@@ -4,7 +4,7 @@ import { NgIf } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import Swal from 'sweetalert2';
 import { AdminAuthService } from '../services/admin-auth.service';
 import { AdminLoginRequest } from '../model/admin-auth';
@@ -32,6 +32,7 @@ export class LoginComponent {
 
   constructor(
     public dialog: MatDialog,
+    public dialogRef: MatDialogRef<LoginComponent>,
     private adminAuthService: AdminAuthService,
     private router: Router,
   ) {
@@ -157,6 +158,7 @@ export class LoginComponent {
         showConfirmButton: false,
         confirmButtonColor: '#1e3c72'
       }).then(() => {
+        this.dialogRef.close();
         this.router.navigate(['/admin/admin-map']);
       });
     } else {
@@ -172,6 +174,10 @@ export class LoginComponent {
 
   volverAPaginaPrincipal() {
     this.router.navigate(['/geoportal']);
+  }
+
+  closeDialog() {
+    this.dialogRef.close();
   }
 
 
