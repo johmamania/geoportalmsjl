@@ -56,17 +56,83 @@ export class MapDataService {
       'Content-Type': 'application/json'
     });
 
-    return this.http.get<MapPoint[]>(url, { headers: publicHeaders }).pipe(
-      map(points => {
-        if (points && Array.isArray(points)) {
+    return this.http.get<any>(url, {
+      headers: publicHeaders,
+      observe: 'body',
+      responseType: 'json'
+    }).pipe(
+      map(response => {
+        try {
+          // Asegurar que la respuesta sea un array
+          let points: MapPoint[] = [];
+
+          // Si la respuesta es null o undefined, retornar array vacío
+          if (!response) {
+            console.warn('⚠️ Respuesta vacía de Supabase');
+            this.points.set([]);
+            return [];
+          }
+
+          // Si la respuesta es un array, usarla directamente
+          if (Array.isArray(response)) {
+            points = response;
+          }
+          // Si la respuesta es un objeto con una propiedad que contiene el array
+          else if (typeof response === 'object' && response.data && Array.isArray(response.data)) {
+            points = response.data;
+          }
+          // Si la respuesta es un objeto con otra estructura
+          else if (typeof response === 'object') {
+            // Intentar convertir el objeto a array si tiene propiedades numéricas
+            const values = Object.values(response);
+            if (values.length > 0 && Array.isArray(values[0])) {
+              points = values[0] as MapPoint[];
+            } else {
+              // Si no es un array, intentar extraer valores
+              points = values.filter(item =>
+                item &&
+                typeof item === 'object' &&
+                item !== null &&
+                'id' in item
+              ) as MapPoint[];
+            }
+          }
+
+          // Validar que los puntos tengan la estructura correcta
+          points = points.filter(point => {
+            try {
+              return point &&
+                     typeof point === 'object' &&
+                     point !== null &&
+                     'id' in point &&
+                     'latitude' in point &&
+                     'longitude' in point &&
+                     !isNaN(Number(point.latitude)) &&
+                     !isNaN(Number(point.longitude));
+            } catch (e) {
+              return false;
+            }
+          });
+
           this.points.set(points);
+          console.log(`✅ Puntos cargados sin autorización: ${points.length} puntos válidos`);
           return points;
+        } catch (error) {
+          console.error('Error al procesar respuesta de Supabase:', error);
+          this.points.set([]);
+          return [];
         }
-        return [];
       }),
       catchError(error => {
         console.error('Error al obtener puntos sin autorización:', error);
-        return throwError(() => error);
+        console.error('Detalles del error:', {
+          message: error?.message,
+          status: error?.status,
+          error: error?.error
+        });
+        // Retornar un array vacío en lugar de lanzar error para que la app no se rompa
+        this.points.set([]);
+        return throwError(() => new Error('No se pudieron cargar los puntos. Por favor, intente más tarde.'));
       })
     );
   }
