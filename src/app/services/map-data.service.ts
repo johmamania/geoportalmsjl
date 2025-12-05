@@ -47,6 +47,30 @@ export class MapDataService {
     );
   }
 
+  getPointsSinAutorizacion(): Observable<MapPoint[]> {
+    const url = `${this.supabaseUrl}/rest/v1/meeting_points?select=*&is_active=eq.true&order=created_at.desc`;
+
+    // Headers mínimos sin autenticación (solo apikey público)
+    const publicHeaders = new HttpHeaders({
+      'apikey': this.supabaseKey,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.get<MapPoint[]>(url, { headers: publicHeaders }).pipe(
+      map(points => {
+        if (points && Array.isArray(points)) {
+          this.points.set(points);
+          return points;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error al obtener puntos sin autorización:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   /**
    * Obtiene un punto por ID
    */

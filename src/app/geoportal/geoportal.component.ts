@@ -10,7 +10,7 @@ import { fromLonLat } from 'ol/proj';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import { Style, Icon } from 'ol/style';
-import { AfterViewInit, Component, OnDestroy, signal } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { MaterialModule } from '../material/material.module';
 import { EventType, RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
@@ -31,7 +31,7 @@ import { EventTypes } from 'ol/Observable';
   templateUrl: './geoportal.component.html',
   styleUrl: './geoportal.component.css'
 })
-export class GeoportalComponent implements AfterViewInit, OnDestroy {
+export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
   private map!: Map;
   private marcadorLayer?: VectorLayer<VectorSource>;
   private currentLocationMarker?: Feature;
@@ -110,6 +110,10 @@ export class GeoportalComponent implements AfterViewInit, OnDestroy {
     private mapDataService: MapDataService
   ) {
     this.version = environment.VERSION;
+  }
+
+  ngOnInit(): void {
+    // No cargar aquí, esperar a que el mapa esté listo
   }
 
   ngAfterViewInit(): void {
@@ -309,12 +313,44 @@ export class GeoportalComponent implements AfterViewInit, OnDestroy {
 
   /**
    * Carga puntos desde Supabase y los muestra en el mapa
+   * Se ejecuta cada vez que se entra al componente
    */
   private loadPointsFromSupabase(): void {
-    // Suscribirse a los puntos del servicio
-    this.mapDataService.getPoints().subscribe(points => {
-    //  console.log("ubicaciones" + points);
-      this.renderPointsOnMap(points);
+    // Verificar que el mapa y la capa de marcadores estén inicializados
+    if (!this.map || !this.marcadorLayer) {
+      console.warn('Mapa no inicializado, reintentando en 500ms...');
+      setTimeout(() => this.loadPointsFromSupabase(), 500);
+      return;
+    }
+
+    console.log('Iniciando carga de puntos desde Supabase...');
+
+    // Usar getPointsSinAutorizacion para producción (sin requerir autenticación)
+    this.mapDataService.getPointsSinAutorizacion().subscribe({
+      next: (points) => {
+        if (points && Array.isArray(points)) {
+          console.log(`✅ Puntos cargados exitosamente: ${points.length} puntos`);
+          this.renderPointsOnMap(points);
+        } else {
+          console.warn('⚠️ No se recibieron puntos válidos');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar puntos sin autorización:', error);
+        // Intentar con el método alternativo si falla
+        console.log('Intentando método alternativo...');
+        this.mapDataService.getPoints().subscribe({
+          next: (points) => {
+            if (points && Array.isArray(points)) {
+              console.log(`✅ Puntos cargados (método alternativo): ${points.length} puntos`);
+              this.renderPointsOnMap(points);
+            }
+          },
+          error: (err) => {
+            console.error('❌ Error al cargar puntos (método alternativo):', err);
+          }
+        });
+      }
     });
   }
 
