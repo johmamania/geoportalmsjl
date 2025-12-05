@@ -40,6 +40,7 @@ export class GeoportalComponent implements AfterViewInit, OnDestroy {
   version: string;
   wmsLayersMenuOpen: boolean = false;
   selectedMapType = signal<string>('osm');
+  showLegend = signal<boolean>(false);
 
   // Tipos de mapas disponibles
   mapTypes = [
@@ -312,7 +313,7 @@ export class GeoportalComponent implements AfterViewInit, OnDestroy {
   private loadPointsFromSupabase(): void {
     // Suscribirse a los puntos del servicio
     this.mapDataService.getPoints().subscribe(points => {
-      console.log("ubicaciones" + points);
+    //  console.log("ubicaciones" + points);
       this.renderPointsOnMap(points);
     });
   }
@@ -349,8 +350,8 @@ export class GeoportalComponent implements AfterViewInit, OnDestroy {
           pointData: point // Guardar los datos completos del punto
         });
 
-        // Estilo personalizado usando el icono local
-        const iconUrl = this.getIconUrl(point.icon_type || 'default', point.icon_color || '#FF0000');
+        // Estilo personalizado usando el icono según la categoría
+        const iconUrl = this.getIconUrlByCategory(point.category);
 
         marker.setStyle(new Style({
           image: new Icon({
@@ -366,11 +367,32 @@ export class GeoportalComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Obtiene la URL del icono según el tipo
+   * Obtiene la URL del icono según la categoría
    */
-  private getIconUrl(iconType: string, color: string): string {
-    // Usar marcador azul de la librería externa
-    return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png';
+  private getIconUrlByCategory(category?: string): string {
+    // Colores según categoría:
+    // Categoría 1: Azul
+    // Categoría 2: Verde
+    // Categoría 3: Morado
+    const baseUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-';
+
+    if (category === '1') {
+      return `${baseUrl}blue.png`;
+    } else if (category === '2') {
+      return `${baseUrl}green.png`;
+    } else if (category === '3') {
+      return `${baseUrl}violet.png`; // Morado/Violeta
+    } else {
+      // Por defecto, usar azul
+      return `${baseUrl}blue.png`;
+    }
+  }
+
+  /**
+   * Toggle para mostrar/ocultar la leyenda
+   */
+  toggleLegend(): void {
+    this.showLegend.set(!this.showLegend());
   }
 
   /**

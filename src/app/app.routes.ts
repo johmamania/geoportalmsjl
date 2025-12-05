@@ -17,11 +17,11 @@ export const routes: Routes = [
 
 
   {
-    path: 'admin',
+    path: 'admin/admin-map',
     component: AdminComponent,
     canActivate: [adminGuard]
   },
-  
+
   { path: 'not-404', component: Not404Component},
   { path: '**', redirectTo: 'not-404'}
 ];

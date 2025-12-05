@@ -12,13 +12,23 @@
 }
 
 .toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .toolbar-actions button {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 300px;
+  max-width: 500px;
 }
 
 .table-container {
@@ -111,6 +121,15 @@
 
 .half-width {
   flex: 1;
+}
+
+.map-selector-button {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 /* Responsive */

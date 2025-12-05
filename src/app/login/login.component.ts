@@ -157,7 +157,7 @@ export class LoginComponent {
         showConfirmButton: false,
         confirmButtonColor: '#1e3c72'
       }).then(() => {
-        this.router.navigate(['/admin']);
+        this.router.navigate(['/admin/admin-map']);
       });
     } else {
       this.error = 'Código de acceso incorrecto';

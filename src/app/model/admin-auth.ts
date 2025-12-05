@@ -16,5 +16,7 @@ export interface AdminUser {
   access_code: string;
   created_at: string;
   is_active: boolean;
+  user_id?: string; // Opcional: referencia a auth.users de Supabase
+  email?: string; // Opcional: email del usuario
 }
 
