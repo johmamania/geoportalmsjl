@@ -9,7 +9,8 @@ import XYZ from 'ol/source/XYZ';
 import { fromLonLat } from 'ol/proj';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
-import { Style, Icon } from 'ol/style';
+import LineString from 'ol/geom/LineString';
+import { Style, Icon, Stroke, Text, Fill, Circle as CircleStyle } from 'ol/style';
 import { AfterViewInit, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { MaterialModule } from '../material/material.module';
 import { EventType, RouterOutlet, ActivatedRoute } from '@angular/router';
@@ -23,6 +24,8 @@ import { MapPoint } from '../model/map-point';
 import BaseEvent from 'ol/events/Event';
 import { EventTypes } from 'ol/Observable';
 import { CategoriasService } from '../services/categorias.service';
+import { RoutingService } from '../services/routing.service';
+import Swal from 'sweetalert2';
 
 
 @Component({
@@ -35,7 +38,11 @@ import { CategoriasService } from '../services/categorias.service';
 export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
   private map!: Map;
   private marcadorLayer?: VectorLayer<VectorSource>;
+  private routeLayer?: VectorLayer<VectorSource>; // Capa para las rutas
+  private routeMarkersLayer?: VectorLayer<VectorSource>; // Capa para marcadores de inicio y fin de ruta
   private currentLocationMarker?: Feature;
+  private routeStartMarker?: Feature; // Marcador de inicio de ruta
+  private routeEndMarker?: Feature; // Marcador de fin de ruta
   private popupOverlay?: Overlay;
   private baseLayer?: TileLayer<any>;
   version: string;
@@ -45,6 +52,10 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
   categoryId: string | null = null; // ID de categoría recibido de la ruta
   isMobile = signal<boolean>(false); // Detecta si es móvil
   private resizeHandler = () => this.checkIfMobile(); // Referencia para poder remover el listener
+  private currentLocation: { latitude: number; longitude: number } | null = null; // Ubicación actual del usuario
+  selectedTransportType = signal<string>('walking'); // Tipo de transporte: walking, driving, cycling
+  selectedTransportName = signal<string>('A Pie'); // Nombre del transporte seleccionado
+  currentRouteFeature?: Feature; // Feature de la ruta actual
 
   // Tipos de mapas disponibles
   mapTypes = [
@@ -113,7 +124,8 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private wmsService: WmsService,
     private mapDataService: MapDataService,
-    private categoriasService: CategoriasService
+    private categoriasService: CategoriasService,
+    private routingService: RoutingService
   ) {
     this.version = environment.VERSION;
   }
@@ -175,6 +187,17 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
    * Filtra los puntos por categoría y navega
    */
   filtrarPorCategoria(id: string): void {
+    // Obtener el nombre de la categoría para el mensaje
+    let categoriaNombre = 'Todas las ubicaciones';
+    if (id && id !== '0') {
+      const categoria = this.categoriasService.getCategorias().find(c => c.id === id);
+      categoriaNombre = categoria ? categoria.nombre : `Categoría ${id}`;
+    }
+
+    // Mostrar indicador de carga antes de navegar
+    this.showLoadingAlert(categoriaNombre);
+
+    // Navegar a la nueva ruta
     this.router.navigate(['/geoportal', id]);
   }
 
@@ -235,6 +258,26 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.map.addLayer(this.marcadorLayer);
 
+    // Crear capa de rutas
+    this.routeLayer = new VectorLayer({
+      source: new VectorSource(),
+      zIndex: 999, // Por debajo de los marcadores pero sobre las capas base
+      style: new Style({
+        stroke: new Stroke({
+          color: '#3a9b37', // Verde para la ruta más cercana
+          width: 5
+        })
+      })
+    });
+    this.map.addLayer(this.routeLayer);
+
+    // Crear capa para marcadores de inicio y fin de ruta
+    this.routeMarkersLayer = new VectorLayer({
+      source: new VectorSource(),
+      zIndex: 1001 // Por encima de todo
+    });
+    this.map.addLayer(this.routeMarkersLayer);
+
     // Agregar interacción de clic al mapa para los marcadores
     this.map.on('click', (event) => {
       const feature = this.map.forEachFeatureAtPixel(
@@ -250,7 +293,7 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
           const geometry = feature.getGeometry();
           if (geometry instanceof Point) {
             const coordinates = geometry.getCoordinates();
-            this.showPointPopup(point, coordinates);
+            this.showPointOptionsMenu(point, coordinates);
           }
         }
       }
@@ -327,6 +370,9 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
 
+        // Guardar la ubicación actual
+        this.currentLocation = { latitude, longitude };
+
         // Convertir coordenadas a EPSG:3857
         const center = fromLonLat([longitude, latitude]);
 
@@ -375,6 +421,49 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
+   * Muestra el indicador de carga
+   */
+  private showLoadingAlert(categoriaNombre: string = ''): void {
+    const mensaje = categoriaNombre
+      ? `Cargando ubicaciones: ${categoriaNombre}...`
+      : 'Cargando ubicaciones...';
+
+    Swal.fire({
+      title: mensaje,
+      html: `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+          <div class="swal2-loader" style="margin: 20px auto;"></div>
+          <button id="cancel-loading-btn"
+                  style="margin-top: 30px; padding: 10px 30px; background-color: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500;">
+            Cancelar
+          </button>
+        </div>
+      `,
+      allowOutsideClick: false,
+      allowEscapeKey: true,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+
+        // Agregar evento al botón cancelar
+        const cancelBtn = document.getElementById('cancel-loading-btn');
+        if (cancelBtn) {
+          cancelBtn.addEventListener('click', () => {
+            this.closeLoadingAlert();
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Cierra el indicador de carga
+   */
+  private closeLoadingAlert(): void {
+    Swal.close();
+  }
+
+  /**
    * Carga puntos desde Supabase y los muestra en el mapa
    * Se ejecuta cada vez que se entra al componente
    */
@@ -389,6 +478,16 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('Iniciando carga de puntos desde Supabase...');
     console.log('Filtro por categoría:', this.categoryId === '0' ? 'Todas las categorías' : `Categoría ${this.categoryId}`);
 
+    // Obtener el nombre de la categoría para el mensaje
+    let categoriaNombre = 'Todas las ubicaciones';
+    if (this.categoryId && this.categoryId !== '0') {
+      const categoria = this.categoriasService.getCategorias().find(c => c.id === this.categoryId);
+      categoriaNombre = categoria ? categoria.nombre : `Categoría ${this.categoryId}`;
+    }
+
+    // Mostrar indicador de carga
+    this.showLoadingAlert(categoriaNombre);
+
     // Usar getPointsSinAutorizacion para producción (sin requerir autenticación)
     this.mapDataService.getPointsSinAutorizacion().subscribe({
       next: (points) => {
@@ -400,8 +499,12 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
           console.log(`✅ Puntos filtrados: ${filteredPoints.length} puntos`);
 
           this.renderPointsOnMap(filteredPoints);
+
+          // Cerrar indicador de carga
+          this.closeLoadingAlert();
         } else {
           console.warn('⚠️ No se recibieron puntos válidos');
+          this.closeLoadingAlert();
         }
       },
       error: (error) => {
@@ -418,10 +521,16 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
               console.log(`✅ Puntos filtrados: ${filteredPoints.length} puntos`);
 
               this.renderPointsOnMap(filteredPoints);
+
+              // Cerrar indicador de carga
+              this.closeLoadingAlert();
+            } else {
+              this.closeLoadingAlert();
             }
           },
           error: (err) => {
             console.error('❌ Error al cargar puntos (método alternativo):', err);
+            this.closeLoadingAlert();
           }
         });
       }
@@ -521,9 +630,9 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Muestra un popup con información del punto
+   * Muestra un menú de opciones cuando se hace clic en un punto
    */
-  private showPointPopup(point: MapPoint, position: number[]): void {
+  private showPointOptionsMenu(point: MapPoint, position: number[]): void {
     if (!this.popupOverlay) {
       return;
     }
@@ -542,12 +651,16 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
       content.style.padding = '16px';
       content.style.paddingTop = '40px'; // Espacio para el botón cerrar
       content.innerHTML = `
-        <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px; color: #1e3c72;">${point.name}</div>
-        ${point.description ? `<div style="color: #666; margin-bottom: 10px; line-height: 1.5;">${point.description}</div>` : ''}
-        ${point.category ? `<div style="color: #999; font-size: 13px; margin-bottom: 8px;"><strong>Categoría:</strong> ${point.category}</div>` : ''}
-        <div style="color: #999; font-size: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
-          <strong>Coordenadas:</strong><br>
-          Lat: ${point.latitude.toFixed(6)}, Lng: ${point.longitude.toFixed(6)}
+        <div style="font-weight: bold; font-size: 18px; margin-bottom: 20px; color: #1e3c72; text-align: center;">${point.name}</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <button id="btn-ver-info" style="padding: 12px 20px; background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>ℹ️</span>
+            <span>Ver Información</span>
+          </button>
+          <button id="btn-como-llegar" style="padding: 12px 20px; background: linear-gradient(135deg, #3a9b37 0%, #1ba00f 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>🗺️</span>
+            <span>Cómo Llegar</span>
+          </button>
         </div>
       `;
 
@@ -567,7 +680,7 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       }
 
-      // Estilos del botón cerrar (arriba a la derecha)
+      // Estilos del botón cerrar
       closer.style.position = 'absolute';
       closer.style.top = '8px';
       closer.style.right = '8px';
@@ -586,7 +699,6 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
       closer.style.transition = 'all 0.2s ease';
       closer.style.zIndex = '1000';
 
-      // Hover del botón cerrar
       closer.onmouseenter = () => {
         closer.style.background = '#e0e0e0';
         closer.style.color = '#000';
@@ -601,6 +713,479 @@ export class GeoportalComponent implements OnInit, AfterViewInit, OnDestroy {
       popupElement.appendChild(closer);
       popupElement.appendChild(content);
       this.popupOverlay.setPosition(position);
+
+      // Event listeners para los botones
+      const btnVerInfo = document.getElementById('btn-ver-info');
+      const btnComoLlegar = document.getElementById('btn-como-llegar');
+
+      if (btnVerInfo) {
+        btnVerInfo.addEventListener('click', () => {
+          this.showPointInfo(point, position);
+        });
+      }
+
+      if (btnComoLlegar) {
+        btnComoLlegar.addEventListener('click', () => {
+          this.showRouteOptions(point, position);
+        });
+      }
+    }
+  }
+
+  /**
+   * Muestra un popup con información del punto
+   */
+  private showPointInfo(point: MapPoint, position: number[]): void {
+    if (!this.popupOverlay) {
+      return;
+    }
+
+    const popupElement = this.popupOverlay.getElement();
+    if (popupElement) {
+      popupElement.style.background = '#ffffff';
+      popupElement.style.borderRadius = '8px';
+      popupElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      popupElement.style.minWidth = '250px';
+      popupElement.style.maxWidth = '350px';
+      popupElement.style.position = 'relative';
+
+      const content = document.createElement('div');
+      content.style.padding = '16px';
+      content.style.paddingTop = '40px';
+      content.innerHTML = `
+        <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px; color: #1e3c72;">${point.name}</div>
+        ${point.description ? `<div style="color: #666; margin-bottom: 10px; line-height: 1.5;">${point.description}</div>` : ''}
+        ${point.category ? `<div style="color: #999; font-size: 13px; margin-bottom: 8px;"><strong>Categoría:</strong> ${point.category}</div>` : ''}
+        <div style="color: #999; font-size: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+          <strong>Coordenadas:</strong><br>
+          Lat: ${point.latitude.toFixed(6)}, Lng: ${point.longitude.toFixed(6)}
+        </div>
+      `;
+
+      let closer = popupElement.querySelector('.ol-popup-closer') as HTMLAnchorElement;
+      popupElement.innerHTML = '';
+
+      if (!closer) {
+        closer = document.createElement('a');
+        closer.className = 'ol-popup-closer';
+        closer.href = '#';
+        closer.innerHTML = '×';
+        closer.addEventListener('click', (evt) => {
+          evt.preventDefault();
+          this.popupOverlay?.setPosition(undefined);
+          return false;
+        });
+      }
+
+      closer.style.position = 'absolute';
+      closer.style.top = '8px';
+      closer.style.right = '8px';
+      closer.style.width = '28px';
+      closer.style.height = '28px';
+      closer.style.display = 'flex';
+      closer.style.alignItems = 'center';
+      closer.style.justifyContent = 'center';
+      closer.style.background = '#f5f5f5';
+      closer.style.borderRadius = '50%';
+      closer.style.color = '#333';
+      closer.style.fontSize = '20px';
+      closer.style.fontWeight = 'bold';
+      closer.style.textDecoration = 'none';
+      closer.style.cursor = 'pointer';
+      closer.style.transition = 'all 0.2s ease';
+      closer.style.zIndex = '1000';
+
+      closer.onmouseenter = () => {
+        closer.style.background = '#e0e0e0';
+        closer.style.color = '#000';
+        closer.style.transform = 'scale(1.1)';
+      };
+      closer.onmouseleave = () => {
+        closer.style.background = '#f5f5f5';
+        closer.style.color = '#333';
+        closer.style.transform = 'scale(1)';
+      };
+
+      popupElement.appendChild(closer);
+      popupElement.appendChild(content);
+      this.popupOverlay.setPosition(position);
+    }
+  }
+
+  /**
+   * Muestra opciones de transporte y calcula la ruta
+   */
+  private showRouteOptions(point: MapPoint, position: number[]): void {
+    if (!this.currentLocation) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Ubicación no disponible',
+        text: 'No se pudo obtener tu ubicación actual. Por favor, permite el acceso a la ubicación.',
+        confirmButtonColor: '#4A90E2'
+      });
+      this.popupOverlay?.setPosition(undefined);
+      return;
+    }
+
+    if (!this.popupOverlay) {
+      return;
+    }
+
+    const popupElement = this.popupOverlay.getElement();
+    if (popupElement) {
+      popupElement.style.background = '#ffffff';
+      popupElement.style.borderRadius = '8px';
+      popupElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      popupElement.style.minWidth = '280px';
+      popupElement.style.maxWidth = '400px';
+      popupElement.style.position = 'relative';
+
+      const content = document.createElement('div');
+      content.style.padding = '16px';
+      content.style.paddingTop = '40px';
+      content.innerHTML = `
+        <div style="font-weight: bold; font-size: 18px; margin-bottom: 16px; color: #1e3c72; text-align: center;">Cómo Llegar a ${point.name}</div>
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Selecciona el medio de transporte:</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button id="transport-walking" class="transport-btn active" data-transport="walking" data-name="A Pie" data-profile="walking" style="padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+              🚶 A Pie
+            </button>
+            <button id="transport-bus" class="transport-btn" data-transport="driving" data-name="En Bus" data-profile="driving" style="padding: 10px; background: #e0e0e0; color: #333; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+              🚌 En Bus
+            </button>
+            <button id="transport-taxi" class="transport-btn" data-transport="driving" data-name="En Taxi" data-profile="driving" style="padding: 10px; background: #e0e0e0; color: #333; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+              🚕 Taxi
+            </button>
+            <button id="transport-bike" class="transport-btn" data-transport="cycling" data-name="En Bicicleta" data-profile="cycling" style="padding: 10px; background: #e0e0e0; color: #333; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+              🚲 Bicicleta
+            </button>
+          </div>
+        </div>
+        <div id="route-info" style="padding: 12px; background: #f5f5f5; border-radius: 6px; margin-bottom: 12px; text-align: center; font-weight: 500; color: #333;">
+          Calculando ruta...
+        </div>
+        <button id="btn-cerrar-ruta" style="width: 100%; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          Cerrar Ruta
+        </button>
+      `;
+
+      let closer = popupElement.querySelector('.ol-popup-closer') as HTMLAnchorElement;
+      popupElement.innerHTML = '';
+
+      if (!closer) {
+        closer = document.createElement('a');
+        closer.className = 'ol-popup-closer';
+        closer.href = '#';
+        closer.innerHTML = '×';
+        closer.addEventListener('click', (evt) => {
+          evt.preventDefault();
+          this.clearRoute();
+          this.popupOverlay?.setPosition(undefined);
+          return false;
+        });
+      }
+
+      closer.style.position = 'absolute';
+      closer.style.top = '8px';
+      closer.style.right = '8px';
+      closer.style.width = '28px';
+      closer.style.height = '28px';
+      closer.style.display = 'flex';
+      closer.style.alignItems = 'center';
+      closer.style.justifyContent = 'center';
+      closer.style.background = '#f5f5f5';
+      closer.style.borderRadius = '50%';
+      closer.style.color = '#333';
+      closer.style.fontSize = '20px';
+      closer.style.fontWeight = 'bold';
+      closer.style.textDecoration = 'none';
+      closer.style.cursor = 'pointer';
+      closer.style.transition = 'all 0.2s ease';
+      closer.style.zIndex = '1000';
+
+      popupElement.appendChild(closer);
+      popupElement.appendChild(content);
+      this.popupOverlay.setPosition(position);
+
+      // Event listeners para los botones de transporte
+      const transportButtons = popupElement.querySelectorAll('.transport-btn');
+      transportButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Remover clase active de todos
+          transportButtons.forEach(b => {
+            (b as HTMLElement).style.background = '#e0e0e0';
+            (b as HTMLElement).style.color = '#333';
+          });
+          // Agregar clase active al seleccionado
+          (btn as HTMLElement).style.background = '#4A90E2';
+          (btn as HTMLElement).style.color = 'white';
+
+          const transportProfile = (btn as HTMLElement).dataset['profile'] || 'walking';
+          const transportName = (btn as HTMLElement).dataset['name'] || 'A Pie';
+
+          console.log(`Transporte seleccionado: ${transportName} (perfil: ${transportProfile})`);
+
+          // Establecer el perfil según el botón seleccionado
+          if (transportProfile === 'cycling') {
+            this.selectedTransportType.set('cycling');
+          } else if (transportProfile === 'driving') {
+            this.selectedTransportType.set('driving');
+          } else {
+            this.selectedTransportType.set('walking');
+          }
+
+          this.selectedTransportName.set(transportName);
+
+          // Limpiar ruta anterior antes de calcular nueva
+          this.clearRoute();
+
+          // Pequeño delay para asegurar que el estado se actualice
+          setTimeout(() => {
+            this.calculateRoute(point);
+          }, 100);
+        });
+      });
+
+      // Botón cerrar ruta
+      const btnCerrarRuta = document.getElementById('btn-cerrar-ruta');
+      if (btnCerrarRuta) {
+        btnCerrarRuta.addEventListener('click', () => {
+          this.clearRoute();
+          this.popupOverlay?.setPosition(undefined);
+        });
+      }
+
+      // Calcular ruta inicial (a pie por defecto)
+      this.selectedTransportType.set('walking');
+      this.selectedTransportName.set('A Pie');
+      this.calculateRoute(point);
+    }
+  }
+
+  /**
+   * Calcula la ruta usando el servicio de routing
+   */
+  private calculateRoute(destination: MapPoint): void {
+    if (!this.currentLocation || !this.routeLayer) {
+      return;
+    }
+
+    const transport = this.selectedTransportType();
+    const transportName = this.selectedTransportName();
+
+    // Mapear el tipo de transporte al perfil de OSRM
+    let profile: 'driving' | 'walking' | 'cycling' = 'walking';
+
+    if (transport === 'cycling') {
+      profile = 'cycling';
+    } else if (transport === 'driving') {
+      profile = 'driving';
+    } else {
+      profile = 'walking';
+    }
+
+    console.log(`📍 Calculando ruta: ${transportName}`);
+    console.log(`   Tipo: ${transport}`);
+    console.log(`   Perfil OSRM: ${profile}`);
+
+    // Limpiar ruta anterior
+    this.clearRoute();
+
+    // Mostrar loading
+    const routeInfo = document.getElementById('route-info');
+    if (routeInfo) {
+      routeInfo.textContent = 'Calculando ruta...';
+      routeInfo.style.color = '#333';
+    }
+
+    // Usar el servicio de routing
+    const origin: [number, number] = [this.currentLocation.longitude, this.currentLocation.latitude];
+    const dest: [number, number] = [destination.longitude, destination.latitude];
+
+    this.routingService.getRoute(origin, dest, profile).subscribe({
+      next: (response) => {
+        const route = response.routes[0];
+        const geometry = route.geometry;
+
+        // Convertir coordenadas GeoJSON a OpenLayers
+        const coordinates = geometry.coordinates.map((coord: [number, number]) =>
+          fromLonLat([coord[0], coord[1]])
+        );
+
+        // Crear feature de línea
+        const routeFeature = new Feature({
+          geometry: new LineString(coordinates)
+        });
+
+        // Estilo de la ruta - siempre en verde
+        const color = '#3a9b37'; // Verde para la ruta más cercana
+
+        routeFeature.setStyle(new Style({
+          stroke: new Stroke({
+            color: color,
+            width: 5,
+            lineDash: []
+          })
+        }));
+
+        this.routeLayer?.getSource()?.addFeature(routeFeature);
+        this.currentRouteFeature = routeFeature;
+
+        // Agregar marcadores de inicio y fin
+        this.addRouteMarkers(origin, dest, transport);
+
+        // Actualizar información de la ruta
+        const distance = route.distance; // en metros
+        const duration = route.duration; // en segundos
+
+        let distanceText = '';
+        if (distance >= 1000) {
+          distanceText = `${(distance / 1000).toFixed(2)} km`;
+        } else {
+          distanceText = `${Math.round(distance)} m`;
+        }
+
+        let durationText = '';
+        if (duration >= 3600) {
+          const hours = Math.floor(duration / 3600);
+          const minutes = Math.floor((duration % 3600) / 60);
+          durationText = `${hours}h ${minutes}m`;
+        } else {
+          durationText = `${Math.floor(duration / 60)} min`;
+        }
+
+        // Usar el nombre del transporte seleccionado
+        const transportName = this.selectedTransportName();
+
+        if (routeInfo) {
+          routeInfo.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 4px;">${transportName}</div>
+            <div style="font-size: 14px;">Distancia: ${distanceText}</div>
+            <div style="font-size: 14px;">Tiempo estimado: ${durationText}</div>
+          `;
+        }
+
+        // Ajustar vista del mapa para mostrar toda la ruta
+        const extent = routeFeature.getGeometry()?.getExtent();
+        if (extent && this.map) {
+          this.map.getView().fit(extent, {
+            padding: [50, 50, 50, 50],
+            duration: 1000
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error al calcular la ruta:', error);
+        if (routeInfo) {
+          routeInfo.textContent = error.message || 'Error al calcular la ruta';
+          routeInfo.style.color = '#dc3545';
+        }
+      }
+    });
+  }
+
+  /**
+   * Agrega marcadores de inicio y fin de ruta con iconos según el transporte
+   */
+  private addRouteMarkers(origin: [number, number], destination: [number, number], transportType: string): void {
+    if (!this.routeMarkersLayer) {
+      return;
+    }
+
+    // Limpiar marcadores anteriores
+    this.routeMarkersLayer.getSource()?.clear();
+
+    // Obtener icono según el tipo de transporte
+    const startIconUrl = this.getTransportIcon(transportType);
+
+    // Coordenadas convertidas
+    const startCoord = fromLonLat([origin[0], origin[1]]);
+    const endCoord = fromLonLat([destination[0], destination[1]]);
+
+    // Crear marcador de inicio (Punto de Partida)
+    const startMarker = new Feature({
+      geometry: new Point(startCoord),
+      name: 'Punto de Partida'
+    });
+
+    startMarker.setStyle(new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: startIconUrl,
+        scale: 0.6
+      }),
+      text: new Text({
+        text: 'Punto de Partida',
+        offsetY: -55,
+        font: 'bold 14px Arial',
+        fill: new Fill({ color: '#1e3c72' }),
+        stroke: new Stroke({
+          color: '#fff',
+          width: 3
+        })
+      })
+    }));
+
+    // Crear marcador de fin (Punto de Llegada)
+    const endMarker = new Feature({
+      geometry: new Point(endCoord),
+      name: 'Punto de Llegada'
+    });
+
+    endMarker.setStyle(new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        scale: 0.6
+      }),
+      text: new Text({
+        text: 'Punto de Llegada',
+        offsetY: -55,
+        font: 'bold 14px Arial',
+        fill: new Fill({ color: '#1e3c72' }),
+        stroke: new Stroke({
+          color: '#fff',
+          width: 3
+        })
+      })
+    }));
+
+    // Agregar marcadores a la capa
+    this.routeMarkersLayer.getSource()?.addFeature(startMarker);
+    this.routeMarkersLayer.getSource()?.addFeature(endMarker);
+    this.routeStartMarker = startMarker;
+    this.routeEndMarker = endMarker;
+  }
+
+  /**
+   * Obtiene el icono según el tipo de transporte
+   */
+  private getTransportIcon(transportType: string): string {
+    switch(transportType) {
+      case 'walking':
+        return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png';
+      case 'driving':
+        return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png';
+      case 'cycling':
+        return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png';
+      default:
+        return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png';
+    }
+  }
+
+  /**
+   * Limpia la ruta del mapa
+   */
+  private clearRoute(): void {
+    if (this.routeLayer) {
+      this.routeLayer.getSource()?.clear();
+      this.currentRouteFeature = undefined;
+    }
+    if (this.routeMarkersLayer) {
+      this.routeMarkersLayer.getSource()?.clear();
+      this.routeStartMarker = undefined;
+      this.routeEndMarker = undefined;
     }
   }
 

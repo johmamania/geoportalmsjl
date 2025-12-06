@@ -15,24 +15,20 @@ export function tokenGetter() {
 }
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes), [DatePipe],
-  provideAnimationsAsync(),
-  //provideHttpClient() //Configuracion clasica de HttpClient
-  importProvidersFrom(
-    JwtModule.forRoot({
-      config: {
-        tokenGetter: tokenGetter,
-        allowedDomains: environment.allowedDomains,
-        disallowedRoutes: environment.disallowedRoutes,
-      //  allowedDomains: ["localhost:8080"],
-      //  disallowedRoutes: ["http://localhost:8080/backend-sicae/login/forget"]
-
-     //   allowedDomains: ["sicae.ejercito.mil.pe"],
-      //  disallowedRoutes: ["https://sicae.ejercito.mil.pe/backend-sicae/login/forget"]
-      },
-    })
-  ),
-  provideHttpClient(withInterceptorsFromDi()), //para peticion HTTP -Forma cuando viaje el token jwt
+  providers: [
+    provideRouter(routes),
+    [DatePipe],
+    provideAnimationsAsync(),
+    importProvidersFrom(
+      JwtModule.forRoot({
+        config: {
+          tokenGetter: tokenGetter,
+          allowedDomains: environment.allowedDomains,
+          disallowedRoutes: environment.disallowedRoutes
+        },
+      })
+    ),
+    provideHttpClient(withInterceptorsFromDi()),
   {
     provide: HTTP_INTERCEPTORS,
     useClass: ServerErrorsInterceptor,
@@ -44,9 +40,7 @@ export const appConfig: ApplicationConfig = {
   },
   {
     provide: RECAPTCHA_SETTINGS,
-    useValue: {
-      //  siteKey: environment.recaptcha.siteKey,
-    } as RecaptchaSettings,
+    useValue: {} as RecaptchaSettings,
   },
   {
     provide: RECAPTCHA_V3_SITE_KEY,

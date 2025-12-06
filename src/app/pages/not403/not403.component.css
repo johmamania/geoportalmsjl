@@ -88,56 +88,6 @@
   }
 }
 
-.error-icon-container {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 30px;
-}
-
-.error-icon {
-  font-size: 120px !important;
-  width: 120px !important;
-  height: 120px !important;
-  color: #f44336;
-  animation: pulse 2s infinite ease-in-out;
-  filter: drop-shadow(0 8px 16px rgba(244, 67, 54, 0.4));
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.9;
-  }
-}
-
-.icon-shadow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(circle, rgba(244, 67, 54, 0.3) 0%, transparent 70%);
-  border-radius: 50%;
-  z-index: -1;
-  animation: shadowPulse 2s infinite ease-in-out;
-}
-
-@keyframes shadowPulse {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0.3;
-  }
-}
-
 .error-title {
   margin: 0 0 20px 0;
   display: flex;
@@ -275,12 +225,6 @@
 
   .error-text {
     font-size: 32px;
-  }
-
-  .error-icon {
-    font-size: 80px !important;
-    width: 80px !important;
-    height: 80px !important;
   }
 
   .lead {

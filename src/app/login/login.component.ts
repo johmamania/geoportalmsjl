@@ -2,8 +2,7 @@ import { Component, signal } from '@angular/core';
 import { MaterialModule } from '../material/material.module';
 import { NgIf } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import Swal from 'sweetalert2';
 import { AdminAuthService } from '../services/admin-auth.service';
@@ -24,11 +23,8 @@ export class LoginComponent {
   password: string = '';
   accessCode: string = '';
   loading = signal(false);
-  version: string;
   showCodeInput = signal(false);
   accessCodeValue = signal<string | null>(null);
-
-  year = new Date().getFullYear();
 
   constructor(
     public dialog: MatDialog,
@@ -41,7 +37,6 @@ export class LoginComponent {
       password: new FormControl("", Validators.required),
       accessCode: new FormControl("")
     });
-    this.version = environment.VERSION;
   }
 
   login() {
@@ -172,29 +167,15 @@ export class LoginComponent {
     }
   }
 
-  volverAPaginaPrincipal() {
-    this.router.navigate(['/geoportal']);
-  }
-
-  closeDialog() {
+  closeDialog(): void {
     this.dialogRef.close();
   }
 
-
-
-
-
-  resetForm() {
+  resetForm(): void {
     this.showCodeInput.set(false);
     this.accessCodeValue.set(null);
     this.error = '';
     this.message = '';
     this._formulario.reset();
-  }
-
-  convertirAMayusculas() {
-    if (this.username) {
-      this.username = this.username.toUpperCase();
-    }
   }
 }

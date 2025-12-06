@@ -13,11 +13,10 @@ import { AdminAuthService } from "../services/admin-auth.service";
 })
 export class ServerErrorsInterceptor implements HttpInterceptor{
     constructor(
-      //  private snackBar: MatSnackBar,
         private router: Router,
         private adminAuthService: AdminAuthService,
         private snackBar: MatSnackBar
-    ){}
+    ) {}
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         // Verificar si el usuario es administrador
         const isAdmin = this.adminAuthService.getIsAuthenticated();
@@ -27,9 +26,7 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
                 if(event instanceof HttpResponse){
                     if (event.body && event.body.error === true && event.body.errorMessage) {
                         throw new Error(event.body.errorMessage);
-                    }/*else{
-                        this.snackBar.open('SUCCESS', 'INFO', { duration: 2000});
-                    }*/
+                    }
                 }
             })).pipe(catchError( (err) => {
                 // Solo mostrar errores detallados si el usuario es administrador
@@ -48,7 +45,6 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
                     icon: 'warning',
                     confirmButtonText: 'OK'
                 });
-                 //   this.snackBar.open(err.message, 'ERROR 400', { duration: 5000 });
                 }
                 else if (err.status === 404){
 
@@ -63,8 +59,7 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
                         confirmButtonText: 'OK'
                     });
                     this.router.navigate(['/admin/login']);
-                 //   this.snackBar.open(err.error.message, 'ERROR 403', { duration: 5000 });
-                }else if  (err.status === 401) {
+                } else if (err.status === 401) {
                   Swal.fire({
                       title: 'VALIDACION INCORRECTA ',
                       text: err.error?.message || 'No autorizado',
@@ -72,8 +67,7 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
                       confirmButtonText: 'OK'
                   });
                     this.router.navigate(['/admin/login']);
-               //   this.snackBar.open(err.error.message, 'ERROR 403', { duration: 5000 });
-              }
+                }
                 else if (err.status === 500) {
                   Swal.fire({
                     title: 'ERROR ' + err.status,
@@ -81,8 +75,6 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
-                   // this.snackBar.open(err.error.message, 'ERROR 500', { duration: 5000 });
-
                 }
                 else {
                   Swal.fire({
@@ -91,7 +83,6 @@ export class ServerErrorsInterceptor implements HttpInterceptor{
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
-                    //this.snackBar.open(err.error.message, 'ERROR', { duration: 5000 });
                 }
 
                 return EMPTY;

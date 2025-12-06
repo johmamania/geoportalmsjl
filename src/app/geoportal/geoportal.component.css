@@ -73,9 +73,9 @@
   transform: scale(1.1);
 }
 .login-button {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3d6bb3 100%);
+  background: linear-gradient(135deg, #d32f2f 0%, #e53935 50%, #f44336 100%);
   color: #fff !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
   padding: 0 10px;
   border-radius: 14px;
   font-weight: 500;
@@ -85,14 +85,41 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
+
+.login-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
 .login-button:hover {
-  background: linear-gradient(135deg, #3d6bb3 0%, #2a5298 50%, #1e3c72 100%);
-  color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #d32f2f 100%);
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(211, 47, 47, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.login-button:hover::before {
+  left: 100%;
+}
+
+.login-button mat-icon {
+  transition: transform 0.3s ease;
+}
+
+.login-button:hover mat-icon {
+  transform: translateX(3px) scale(1.1);
 }
 
 .login-button:active {
@@ -200,11 +227,11 @@
 
   .mapa-container {
     padding: 8px;
-    margin-top: 140px;
+    margin-top: 1px;
   }
 
   .mapa-content {
-    height: calc(100vh - 200px);
+    height: calc(110vh - 200px);
   }
 
   .mapa-header {

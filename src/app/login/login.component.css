@@ -2,12 +2,24 @@
 .login-dialog-wrapper {
   padding: 0;
   margin: 0;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
   min-height: 450px;
   height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+/* Estilos globales para el panel del diálogo */
+::ng-deep .login-dialog-panel {
+  width: 100% !important;
+  max-width: 400px !important;
+}
+
+::ng-deep .login-dialog-panel .mat-dialog-container {
+  padding: 0 !important;
+  overflow: hidden;
 }
 
 .login-card {
@@ -17,7 +29,7 @@
   height: 100%;
   margin: 0;
   padding: 0;
-  border-radius: 10px;
+
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -78,51 +90,6 @@
 
 .example-full-width {
   width: 98%;
-}
-
-.login-wrapper .example-full-width,
-.login-wrapper .btn-block {
-  width: 98%;
-}
-
-/* Estilos para los iconos en los campos de formulario */
-.login-wrapper mat-form-field mat-icon[matPrefix] {
-  color: #2196F3;
-  margin-right: 8px;
-}
-
-.login-wrapper mat-form-field:hover mat-icon[matPrefix] {
-  color: #42A5F5;
-}
-
-.login-wrapper mat-form-field.mat-focused mat-icon[matPrefix] {
-  color: #64B5F6;
-}
-
-/* Mejoras adicionales para los campos de formulario */
-.login-wrapper mat-form-field {
-  margin-bottom: 10px;
-  width: 98%;
-}
-
-.login-wrapper mat-form-field .mat-form-field-label {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.login-wrapper mat-form-field .mat-form-field-outline {
-  color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.login-wrapper mat-form-field.mat-focused .mat-form-field-outline-thick {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.login-wrapper mat-form-field input {
-  color: #000000 !important;
-}
-
-.login-wrapper mat-form-field input::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
 }
 
 /* Display del código de acceso */
@@ -267,13 +234,139 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive */
+/* Responsive para Tablet (601px - 1024px) */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .login-dialog-wrapper {
+    width: 100%;
+    max-width: 500px;
+    min-height: 500px;
+  }
+
+  ::ng-deep .login-dialog-panel {
+    max-width: 500px !important;
+  }
+
+  .login-card {
+    padding: 25px;
+  }
+
+  .login-title {
+    font-size: 26px;
+    margin-bottom: 20px;
+  }
+
+  .logo-img {
+    max-width: 180px;
+  }
+
+  .example-full-width {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .form-group {
+    padding: 8px;
+  }
+
+  .add,
+  .volver {
+    font-size: 18px !important;
+    padding: 14px 0;
+    margin-top: 12px;
+  }
+
+  .access-code-display {
+    padding: 25px;
+    margin-bottom: 25px;
+  }
+
+  .access-code-display h2 {
+    font-size: 32px;
+    letter-spacing: 3px;
+  }
+
+  .access-code-display p {
+    font-size: 16px;
+  }
+
+  .error-message {
+    font-size: 15px;
+    padding: 12px;
+  }
+}
+
+/* Responsive para Móvil (hasta 600px) */
 @media (max-width: 600px) {
+  .login-dialog-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+    padding: 10px;
+  }
+
+  ::ng-deep .login-dialog-panel {
+    max-width: 100% !important;
+    width: 95vw !important;
+  }
+
   .login-card {
     padding: 15px;
   }
-  
+
+  .login-title {
+    font-size: 20px;
+  }
+
   .logo-img {
     max-width: 150px;
+  }
+
+  .example-full-width {
+    font-size: 14px;
+  }
+
+  .add,
+  .volver {
+    font-size: 16px !important;
+    padding: 12px 0;
+  }
+
+  .access-code-display h2 {
+    font-size: 24px;
+  }
+
+  .access-code-display {
+    padding: 15px;
+  }
+
+  .form-group {
+    padding: 4px;
+  }
+}
+
+/* Responsive para pantallas muy pequeñas (hasta 400px) */
+@media (max-width: 400px) {
+  .login-dialog-wrapper {
+    width: 100vw;
+    padding: 5px;
+  }
+
+  .login-title {
+    font-size: 18px;
+  }
+
+  .logo-img {
+    max-width: 120px;
+  }
+
+  .add,
+  .volver {
+    font-size: 14px !important;
+    padding: 10px 0;
+  }
+
+  .access-code-display h2 {
+    font-size: 20px;
+    letter-spacing: 1px;
   }
 }

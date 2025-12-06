@@ -8,6 +8,10 @@
   </mat-toolbar>
 
   <div class="content-container">
+    <mat-tab-group>
+      <!-- Tab 1: Administración de Ubicación -->
+      <mat-tab label="Administración de Ubicación">
+        <ng-template matTabContent>
     <div class="toolbar-actions">
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Buscar por nombre, categoría o descripción</mat-label>
@@ -107,6 +111,23 @@
         (page)="onPageChange($event)">
       </mat-paginator>
     </div>
+        </ng-template>
+      </mat-tab>
+
+      <!-- Tab 2: Cantidad de Visitas -->
+      <mat-tab label="Cantidad de Visitas">
+        <ng-template matTabContent>
+          <app-visits></app-visits>
+        </ng-template>
+      </mat-tab>
+
+      <!-- Tab 3: Dashboard -->
+      <mat-tab label="Dashboard">
+        <ng-template matTabContent>
+          <app-dashboard></app-dashboard>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 
   <!-- Modal para Agregar/Editar -->

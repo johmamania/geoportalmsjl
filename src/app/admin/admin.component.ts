@@ -10,12 +10,21 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { MapSelectorDialogComponent, MapSelectorData } from './map-selector-dialog.component';
+import { VisitsComponent } from './visits/visits.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, MaterialModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MaterialModule,
+    VisitsComponent,
+    DashboardComponent
+  ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })

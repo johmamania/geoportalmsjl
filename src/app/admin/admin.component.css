@@ -7,7 +7,6 @@
 
 .content-container {
   flex: 1;
-  padding: 24px;
   overflow: auto;
 }
 
@@ -130,6 +129,23 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+/* Tabs Styles */
+::ng-deep .mat-tab-group {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .mat-tab-body-wrapper {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
+::ng-deep .mat-tab-body-content {
+  overflow: visible !important;
 }
 
 /* Responsive */

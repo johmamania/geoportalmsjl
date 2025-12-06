@@ -23,13 +23,6 @@
   gap: 15px;
 }
 
-.logo-img {
-  max-width: 200px;
-  height: auto;
-  object-fit: contain;
-  margin-bottom: 10px;
-}
-
 .title h1 {
   font-size: 45px;
   font-weight: bold;
@@ -117,6 +110,14 @@
   font-weight: 500;
 }
 
+.login-link {
+  transition: color 0.3s ease;
+}
+
+.login-link:hover {
+  color: #ffffff !important;
+}
+
 /* Estilos para categorías */
 .categorias-container {
   position: absolute;
@@ -165,6 +166,20 @@
   transition: all 0.3s ease;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.categoria-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .categoria-button mat-icon {
@@ -172,32 +187,67 @@
   width: 24px;
   height: 24px;
   transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.categoria-button span {
+  position: relative;
+  z-index: 1;
 }
 
 .categoria-button:hover {
-  transform: translateX(5px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  transform: translateX(5px) translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.5);
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 50%, #2E6DA4 100%);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.categoria-button:hover::before {
+  left: 100%;
 }
 
 .categoria-button:hover mat-icon {
-  transform: scale(1.2);
+  transform: translateX(3px) scale(1.15);
 }
 
 .categoria-button:active {
-  transform: translateX(2px);
+  transform: translateX(2px) translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .categoria-button-all {
-  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%) !important;
+  background: linear-gradient(135deg, #d32f2f 0%, #e53935 50%, #f44336 100%) !important;
   font-weight: 600;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.categoria-button-all::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .categoria-button-all:hover {
-  background: linear-gradient(135deg, #FF5252 0%, #E53935 100%) !important;
-  transform: translateX(5px);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  background: linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #d32f2f 100%) !important;
+  transform: translateX(5px) translateY(-2px);
+  box-shadow: 0 8px 20px rgba(211, 47, 47, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.categoria-button-all:hover::before {
+  left: 100%;
+}
+
+.categoria-button-all:hover mat-icon {
+  transform: translateX(3px) scale(1.15);
 }
 
 /* Responsive */

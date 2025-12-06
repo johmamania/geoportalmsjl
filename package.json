@@ -1,13 +1,14 @@
 {
   "name": "geoportal",
   "version": "1.0.0",
- "scripts": {
+"scripts": {
   "ng": "ng",
   "start": "ng serve",
-  "build": "node ./scripts/set-env.js && ng build --configuration production",
-  "watch": "ng build --watch --configuration development",
-  "buildProduction": "ng build --configuration production --base-href /geoportal/",
-  "test": "ng test"
+  "build": "npm run build:prod:vercel",
+
+  "build:prod:vercel": "node ./scripts/set-env.js && ng build --configuration production",
+  "build:prod:local": "ng build --configuration production",
+  "watch": "ng build --watch --configuration development"
 },
   "private": true,
   "dependencies": {
