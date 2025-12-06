@@ -1,10 +1,10 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map, catchError, throwError } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { MapPoint, MapPointCreate, MapPointUpdate } from '../model/map-point';
 import { MapRoute, MapRouteCreate } from '../model/map-route';
 import { MapPolygon, MapPolygonCreate } from '../model/map-polygon';
+import { environment } from '../../environments/environment.development';
 
 @Injectable({
   providedIn: 'root'

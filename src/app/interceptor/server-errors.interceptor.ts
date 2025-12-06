@@ -2,7 +2,7 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } fr
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { EMPTY, Observable, catchError, retry, tap } from "rxjs";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.development";
 import { Injectable } from "@angular/core";
 import Swal from "sweetalert2";
 import { AdminAuthService } from "../services/admin-auth.service";

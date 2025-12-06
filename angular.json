@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "sicae": {
+    "geoportal": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:application": {
@@ -51,7 +51,7 @@
               "outputHashing": "all",
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.development.ts",
                   "with": "src/environments/environment.prod.ts"
                 }
               ]
@@ -63,7 +63,7 @@
               "namedChunks": true,
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.development.ts",
                   "with": "src/environments/environment.development.ts"
                 }
               ]
@@ -75,10 +75,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "sicae:build:production"
+              "buildTarget": "geoportal:build:production"
             },
             "development": {
-              "buildTarget": "sicae:build:development"
+              "buildTarget": "geoportal:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -86,7 +86,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "sicae:build"
+            "buildTarget": "geoportal:build"
           }
         },
         "test": {

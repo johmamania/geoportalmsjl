@@ -15,7 +15,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit, signal } from '@angular/co
 import { MaterialModule } from '../material/material.module';
 import { EventType, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/environment.development';
 import { WmsService } from '../services/wms.service';
 import { WMSLayerConfig } from '../model/wms-layer-info';
 import { KeyValuePipe } from '@angular/common';

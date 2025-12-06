@@ -3,7 +3,7 @@ export const environment = {
   RETRY: 0,
   VERSION: '1.0.0',
   allowedDomains: ['localhost:8080'],
-  disallowedRoutes: ["http://localhost:8080/backend-sicoin/login/forget"],
+  disallowedRoutes: ["http://localhost:8080/backend/login/forget"],
   // Configuración de Supabase
   supabase: {
     url: 'https://khecnaugsqmgxxfgsndu.supabase.co', // Reemplaza con tu URL de Supabase

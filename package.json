@@ -5,11 +5,11 @@
   "ng": "ng",
   "start": "ng serve",
   "build": "npm run build:prod:vercel",
-
   "build:prod:vercel": "node ./scripts/set-env.js && ng build --configuration production",
   "build:prod:local": "ng build --configuration production",
   "watch": "ng build --watch --configuration development"
 },
+
   "private": true,
   "dependencies": {
     "@angular/animations": "^17.1.0",

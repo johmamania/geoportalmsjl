@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { MaterialModule } from '../material/material.module';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/environment.development';
 import { MatDialog } from '@angular/material/dialog';
 import { LoginComponent } from '../login/login.component';
 import { Router } from '@angular/router';
@@ -46,7 +46,7 @@ export class PrincipalComponent {
         // Si presiona "Sí", abrir el modal de login
         const isMobile = window.innerWidth <= 600;
         const isTablet = window.innerWidth > 600 && window.innerWidth <= 1024;
-        
+
         this.dialog.open(LoginComponent, {
           disableClose: false,
           autoFocus: true,
