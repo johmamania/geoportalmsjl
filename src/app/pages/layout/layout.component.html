@@ -1,0 +1,135 @@
+<div class="principal-container">
+  <!-- Imagen de fondo -->
+  <img src="assets/fondo.JPG" alt="Fondo" class="background-image">
+
+  <!-- Sidenav Container (solo para móvil) -->
+  <mat-sidenav-container class="main-sidenav-container" *ngIf="isMobile">
+    <mat-sidenav #mobileMenu 
+                 mode="over" 
+                 position="end" 
+                 [opened]="menuOpened"
+                 (closedStart)="closeMenu()"
+                 class="mobile-menu-sidenav">
+      <div class="mobile-menu-header">
+        <h3>Menú</h3>
+        <button mat-icon-button (click)="closeMenu()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="mobile-menu-content">
+        <button mat-button
+                class="mobile-nav-link"
+                [routerLink]="['/']"
+                routerLinkActive="mobile-nav-link-active"
+                [routerLinkActiveOptions]="{exact: true}"
+                (click)="closeMenu()">
+          <mat-icon>home</mat-icon>
+          <span>INICIO</span>
+        </button>
+        <button mat-button
+                class="mobile-nav-link"
+                [routerLink]="['/geoportal']"
+                routerLinkActive="mobile-nav-link-active"
+                [routerLinkActiveOptions]="{paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored'}"
+                (click)="closeMenu()">
+          <mat-icon>map</mat-icon>
+          <span>GEOPORTAL DE LA INFORMACIÓN</span>
+        </button>
+        <button mat-button
+                class="mobile-nav-link"
+                [routerLink]="['/publicaciones']"
+                routerLinkActive="mobile-nav-link-active"
+                (click)="closeMenu()">
+          <mat-icon>library_books</mat-icon>
+          <span>PUBLICACIONES</span>
+        </button>
+        <button mat-button
+                class="mobile-nav-link"
+                [routerLink]="['/contactanos']"
+                routerLinkActive="mobile-nav-link-active"
+                (click)="closeMenu()">
+          <mat-icon>contact_mail</mat-icon>
+          <span>CONTACTANOS</span>
+        </button>
+      </div>
+    </mat-sidenav>
+    <mat-sidenav-content>
+      <!-- Toolbar Superior -->
+      <div class="toolbar-container" [class.toolbar-scrolled]="isScrolled" [class.toolbar-hidden]="!showToolbar">
+        <!-- Barra superior oscura -->
+        <mat-toolbar class="top-toolbar">
+          <span class="top-toolbar-spacer"></span>
+        </mat-toolbar>
+
+        <!-- Barra de navegación verde oliva -->
+        <mat-toolbar class="nav-toolbar">
+          <div class="nav-toolbar-left">
+            <mat-icon class="nav-icon">public</mat-icon>
+            <span class="nav-title"> Municipalidad Distrital de San Juan de Lurigancho, Portal de la Información</span>
+          </div>
+          <div class="nav-toolbar-right">
+            <!-- Botón hamburguesa solo en móvil -->
+            <button mat-icon-button
+                    class="menu-toggle-btn"
+                    (click)="toggleMenu()"
+                    matTooltip="Menú">
+              <mat-icon>menu</mat-icon>
+            </button>
+          </div>
+        </mat-toolbar>
+      </div>
+
+      <!-- Contenido dinámico según la ruta -->
+      <div class="content-wrapper" [class.content-full]="!showToolbar" [class.content-mobile]="isMobile">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+
+  <!-- Layout para desktop (sin sidenav) -->
+  <div class="desktop-layout" *ngIf="!isMobile">
+    <!-- Toolbar Superior -->
+    <div class="toolbar-container" 
+         [class.toolbar-scrolled]="isScrolled" 
+         [class.toolbar-hidden]="!showToolbar">
+      <!-- Barra superior oscura -->
+      <mat-toolbar class="top-toolbar">
+        <span class="top-toolbar-spacer"></span>
+      </mat-toolbar>
+
+      <!-- Barra de navegación verde oliva -->
+      <mat-toolbar class="nav-toolbar">
+        <div class="nav-toolbar-left">
+          <mat-icon class="nav-icon">public</mat-icon>
+          <span class="nav-title"> Municipalidad Distrital de San Juan de Lurigancho, Portal de la Información</span>
+        </div>
+        <div class="nav-toolbar-right">
+          <button mat-button
+                  class="nav-link"
+                  [routerLink]="['/']"
+                  routerLinkActive="nav-link-active"
+                  [routerLinkActiveOptions]="{exact: true}">INICIO</button>
+          <button mat-button
+                  class="nav-link"
+                  [routerLink]="['/geoportal']"
+                  routerLinkActive="nav-link-active"
+                  [routerLinkActiveOptions]="{paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored'}">GEOPORTAL DE LA INFORMACIÓN</button>
+          <button mat-button
+                  class="nav-link"
+                  [routerLink]="['/publicaciones']"
+                  routerLinkActive="nav-link-active">PUBLICACIONES</button>
+          <button mat-button
+                  class="nav-link"
+                  [routerLink]="['/contactanos']"
+                  routerLinkActive="nav-link-active">CONTACTANOS</button>
+        </div>
+      </mat-toolbar>
+    </div>
+
+    <!-- Contenido dinámico según la ruta -->
+    <div class="content-wrapper" [class.content-full]="!showToolbar">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

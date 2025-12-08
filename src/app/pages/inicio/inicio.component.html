@@ -1,0 +1,34 @@
+<div class="inicio-container">
+  <video class="background-video" autoplay loop playsinline muted>
+    <source src="assets/video_inicio.mp4" type="video/mp4">
+    Tu navegador no soporta la reproducción de video.
+  </video>
+  <div class="title">
+    <h1>GeoPortal San Juan de Lurigancho</h1>
+    <p>Sistema de Información Geográfica para el Distrito de San Juan de Lurigancho</p>
+  </div>
+  <div class="categorias-container">
+    <div class="categorias-content">
+      <h3 class="categorias-title">Categorías de Ubicaciones</h3>
+      <div class="categorias-buttons">
+        <button mat-raised-button
+                color="accent"
+                class="categoria-button categoria-button-all"
+                (click)="verUbicaciones('0')">
+          <mat-icon>map</mat-icon>
+          <span>Ver Todas las Ubicaciones</span>
+        </button>
+        <button *ngFor="let categoria of categorias"
+                mat-raised-button
+                color="primary"
+                class="categoria-button"
+                (click)="verUbicaciones(categoria.id)">
+          <mat-icon>{{ getIconForCategory(categoria.id) }}</mat-icon>
+          <span>{{ categoria.nombre }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer [alwaysVisible]="true"></app-footer>
+

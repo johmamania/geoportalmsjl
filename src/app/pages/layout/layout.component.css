@@ -1,0 +1,470 @@
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+.principal-container {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ============================================
+   IMAGEN DE FONDO
+   ============================================ */
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  background: #000;
+}
+
+/* ============================================
+   TOOLBAR CONTAINER
+   ============================================ */
+.toolbar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  width: 100%;
+  transform: translateY(0);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.toolbar-container.toolbar-scrolled {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toolbar-container.toolbar-hidden {
+  transform: translateY(-100%);
+}
+
+/* ============================================
+   BARRA SUPERIOR OSCURA
+   ============================================ */
+.top-toolbar {
+  background-color: #3a3a3a !important;
+  color: #ffffff;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: height 0.3s ease-in-out;
+}
+
+.toolbar-scrolled .top-toolbar {
+  height: 25px;
+  min-height: 25px;
+}
+
+.top-toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* ============================================
+   BARRA DE NAVEGACIÓN VERDE OLIVA
+   ============================================ */
+.nav-toolbar {
+  background-color: #6b8e23 !important;
+  color: #f5f5f5;
+  height: 60px;
+  min-height: 60px;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: height 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
+
+.toolbar-scrolled .nav-toolbar {
+  height: 50px;
+  min-height: 50px;
+  padding: 0 15px;
+}
+
+/* ============================================
+   NAVEGACIÓN IZQUIERDA
+   ============================================ */
+.nav-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-icon {
+  color: #f5f5f5;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  transition: font-size 0.3s ease-in-out, width 0.3s ease-in-out, height 0.3s ease-in-out;
+}
+
+.toolbar-scrolled .nav-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.nav-title {
+  color: #f5f5f5;
+  font-size: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-size 0.3s ease-in-out;
+}
+
+.toolbar-scrolled .nav-title {
+  font-size: 18px;
+}
+
+/* ============================================
+   NAVEGACIÓN DERECHA
+   ============================================ */
+.nav-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.nav-link {
+  color: #f5f5f5 !important;
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: none;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.3s ease, font-size 0.3s ease-in-out, padding 0.3s ease-in-out;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link-active {
+  background-color: #87ceeb !important;
+  color: #1a1a1a !important;
+  font-weight: 600;
+}
+
+.toolbar-scrolled .nav-link {
+  font-size: 14px;
+  padding: 0 12px;
+}
+
+/* ============================================
+   CONTENT WRAPPER
+   ============================================ */
+.content-wrapper {
+  /* Altura del toolbar: 30px (top) + 60px (nav) = 90px */
+  margin-top: 50px !important;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
+  padding: 0;
+  padding-bottom: clamp(20px, 5vh, 40px);
+  transition: margin-top 0.3s ease-in-out, min-height 0.3s ease-in-out;
+  box-sizing: border-box;
+}
+
+.content-wrapper.content-full {
+  margin-top: 0;
+  min-height: calc(100vh - 80px);
+}
+
+.content-wrapper.content-mobile {
+  margin-top: 90px;
+}
+
+/* Cuando el toolbar está scrolleado, ajustar el margin-top */
+.toolbar-scrolled ~ .content-wrapper {
+  margin-top: calc(25px + 50px); /* 25px (top scrolled) + 50px (nav scrolled) */
+  min-height: calc(100vh - (25px + 50px) - 80px);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .nav-title {
+    font-size: 18px;
+  }
+
+  .toolbar-scrolled .nav-title {
+    font-size: 16px;
+  }
+
+  .nav-link {
+    font-size: 15px;
+    padding: 0 12px;
+  }
+
+  .toolbar-scrolled .nav-link {
+    font-size: 14px;
+    padding: 0 10px;
+  }
+
+  .content-wrapper {
+    margin-top: calc(30px + 60px);
+    min-height: calc(100vh - (30px + 60px) - 80px);
+  }
+
+  .toolbar-scrolled ~ .content-wrapper {
+    margin-top: calc(25px + 50px);
+    min-height: calc(100vh - (25px + 50px) - 80px);
+  }
+}
+
+/* ============================================
+   MENÚ HAMBURGUESA PARA MÓVIL
+   ============================================ */
+.main-sidenav-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100vh;
+}
+
+.main-sidenav-container mat-sidenav-content {
+  width: 100%;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.desktop-layout {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+}
+
+.mobile-menu-sidenav {
+  width: 280px;
+  max-width: 85vw;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  z-index: 1300;
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mobile-menu-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+.mobile-menu-header button {
+  color: white !important;
+}
+
+.mobile-menu-content {
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav-link {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 16px 24px;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 0;
+  transition: all 0.3s ease;
+}
+
+.mobile-nav-link mat-icon {
+  margin-right: 16px;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white !important;
+}
+
+.mobile-nav-link-active {
+  background-color: #87ceeb !important;
+  color: #1a1a1a !important;
+  font-weight: 600;
+}
+
+.menu-toggle-btn {
+  color: #f5f5f5 !important;
+  margin-left: 10px;
+}
+
+.menu-toggle-btn mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+@media (max-width: 768px) {
+  /* Mostrar sidenav en móvil */
+  .main-sidenav-container {
+    display: block;
+  }
+
+  .desktop-layout {
+    display: none !important;
+  }
+
+  .nav-toolbar {
+    height: 60px;
+    min-height: 60px;
+    padding: 0 15px;
+  }
+
+  .toolbar-scrolled .nav-toolbar {
+    height: 50px;
+    min-height: 50px;
+    padding: 0 12px;
+  }
+
+  .nav-toolbar-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nav-toolbar-right {
+    flex-shrink: 0;
+  }
+
+  .nav-title {
+    font-size: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .toolbar-scrolled .nav-title {
+    font-size: 12px;
+  }
+
+  .nav-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .content-wrapper {
+    margin-top: 90px;
+    min-height: calc(100vh - 90px);
+    padding-bottom: clamp(10px, 2vh, 20px);
+    flex: 1;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .content-wrapper.content-full {
+    margin-top: 0;
+    min-height: 100vh;
+  }
+
+  .main-sidenav-container mat-sidenav-content {
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 769px) {
+  .main-sidenav-container {
+    display: none !important;
+  }
+
+  .desktop-layout {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-title {
+    font-size: 14px;
+  }
+
+  .nav-link {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .top-toolbar {
+    height: 25px;
+    min-height: 25px;
+  }
+
+  .nav-toolbar {
+    padding: 8px 5px;
+  }
+
+  .content-wrapper {
+    margin-top: 85px;
+    min-height: calc(100vh - 85px);
+    padding-bottom: clamp(10px, 2vh, 20px);
+    flex: 1;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .content-wrapper.content-full {
+    margin-top: 0;
+    min-height: 100vh;
+  }
+}
+
+/* Para pantallas muy grandes */
+@media (min-width: 1920px) {
+  .content-wrapper {
+    margin-top: calc(30px + 60px);
+    min-height: calc(100vh - (30px + 60px) - 80px);
+    padding-bottom: clamp(30px, 4vh, 60px);
+  }
+}
+
+/* Para pantallas en modo landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .content-wrapper {
+    margin-top: calc(25px + 50px);
+    min-height: calc(100vh - (25px + 50px) - 60px);
+    padding-bottom: clamp(10px, 2vh, 20px);
+  }
+}

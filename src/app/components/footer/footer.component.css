@@ -1,0 +1,96 @@
+/* Estilos para el footer */
+.footer {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, rgba(6, 7, 56, 0.95) 0%, rgba(8, 102, 126, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border-top: 2px solid rgba(74, 144, 226, 0.3);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px 0;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.footer.footer-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.footer-year {
+  font-weight: 700;
+  color: #4A90E2;
+  font-size: 18px;
+  text-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+}
+
+.footer-divider {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 300;
+}
+
+.footer-system {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.footer-entity {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.login-link {
+  transition: color 0.3s ease;
+}
+
+.login-link:hover {
+  color: #ffffff !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-text {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .footer-year {
+    font-size: 15px;
+  }
+
+  .footer-divider {
+    display: none;
+  }
+
+  .footer-text {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+

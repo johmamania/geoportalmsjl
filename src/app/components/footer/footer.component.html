@@ -1,0 +1,16 @@
+<div class="footer" [class.footer-visible]="showFooter || alwaysVisible" id="app-footer">
+  <footer>
+    <div class="footer-content">
+      <div class="footer-text">
+        <span class="footer-entity">Municipalidad Distrital de San Juan de Lurigancho</span>
+        <span class="footer-divider">|</span>
+        <span class="footer-system">Sistema GeoPortal de Información v{{version}}</span>
+        <span class="footer-divider">|</span>
+        <span class="footer-year">© {{year}}</span>
+        <span class="footer-system"> Todos los derechos reservados</span>
+        <span class="footer-system login-link" style="cursor: pointer;color: #3f3f3f;" (click)="login()">Iniciar Sesión</span>
+      </div>
+    </div>
+  </footer>
+</div>
+

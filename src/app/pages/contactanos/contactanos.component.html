@@ -1,0 +1,109 @@
+<div class="contactanos-container">
+  <div class="contactanos-content">
+    <div class="header-section">
+      <h1 class="main-title">
+        <mat-icon class="title-icon">contact_mail</mat-icon>
+        Contáctanos
+      </h1>
+      <p class="subtitle">Estamos aquí para ayudarte. Ponte en contacto con nosotros</p>
+    </div>
+
+    <div class="contact-grid">
+      <!-- Información de Contacto -->
+      <div class="contact-info-section">
+        <h2 class="section-title">
+          <mat-icon>info</mat-icon>
+          Información de Contacto
+        </h2>
+        
+        <div class="contact-cards">
+          <mat-card *ngFor="let contacto of contactos" class="contact-card">
+            <div class="contact-icon-wrapper">
+              <mat-icon class="contact-icon">{{ contacto.icon }}</mat-icon>
+            </div>
+            <mat-card-content>
+              <h3 class="contact-title">{{ contacto.titulo }}</h3>
+              <p class="contact-content">{{ contacto.contenido }}</p>
+              <button *ngIf="contacto.accion" mat-stroked-button color="primary" class="contact-action-btn">
+                {{ contacto.accion }}
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Formulario de Contacto -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <mat-icon>send</mat-icon>
+          Envíanos un Mensaje
+        </h2>
+        
+        <mat-card class="form-card">
+          <form [formGroup]="contactoForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nombre Completo</mat-label>
+              <input matInput formControlName="nombre" placeholder="Ingresa tu nombre">
+              <mat-icon matPrefix>person</mat-icon>
+              <mat-error *ngIf="contactoForm.get('nombre')?.hasError('required') && contactoForm.get('nombre')?.touched">
+                {{ getErrorMessage('nombre') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Correo Electrónico</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="tu@email.com">
+              <mat-icon matPrefix>email</mat-icon>
+              <mat-error *ngIf="contactoForm.get('email')?.hasError('required') && contactoForm.get('email')?.touched">
+                {{ getErrorMessage('email') }}
+              </mat-error>
+              <mat-error *ngIf="contactoForm.get('email')?.hasError('email') && contactoForm.get('email')?.touched">
+                {{ getErrorMessage('email') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Teléfono</mat-label>
+              <input matInput type="tel" formControlName="telefono" placeholder="+51 999 999 999">
+              <mat-icon matPrefix>phone</mat-icon>
+              <mat-error *ngIf="contactoForm.get('telefono')?.hasError('required') && contactoForm.get('telefono')?.touched">
+                {{ getErrorMessage('telefono') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Asunto</mat-label>
+              <input matInput formControlName="asunto" placeholder="¿Sobre qué quieres contactarnos?">
+              <mat-icon matPrefix>subject</mat-icon>
+              <mat-error *ngIf="contactoForm.get('asunto')?.hasError('required') && contactoForm.get('asunto')?.touched">
+                {{ getErrorMessage('asunto') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Mensaje</mat-label>
+              <textarea matInput formControlName="mensaje" rows="5" placeholder="Escribe tu mensaje aquí..."></textarea>
+              <mat-error *ngIf="contactoForm.get('mensaje')?.hasError('required') && contactoForm.get('mensaje')?.touched">
+                {{ getErrorMessage('mensaje') }}
+              </mat-error>
+              <mat-error *ngIf="contactoForm.get('mensaje')?.hasError('minlength') && contactoForm.get('mensaje')?.touched">
+                {{ getErrorMessage('mensaje') }}
+              </mat-error>
+            </mat-form-field>
+
+            <button mat-raised-button 
+                    color="primary" 
+                    type="submit" 
+                    class="submit-btn"
+                    [disabled]="contactoForm.invalid">
+              <mat-icon>send</mat-icon>
+              Enviar Mensaje
+            </button>
+          </form>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

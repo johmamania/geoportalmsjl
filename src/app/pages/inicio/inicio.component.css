@@ -1,0 +1,287 @@
+.inicio-container {
+  position: relative;
+  min-height: calc(100vh - 90px - 80px);
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ============================================
+   VIDEO DE FONDO (solo en inicio)
+   ============================================ */
+.background-video {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  object-fit: cover;
+  background: #000;
+}
+
+/* Asegurar que el video cubra toda la pantalla en diferentes tamaños */
+@media (min-aspect-ratio: 16/9) {
+  .background-video {
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-aspect-ratio: 16/9) {
+  .background-video {
+    width: auto;
+    height: 100%;
+  }
+}
+
+/* Estilos para el título */
+.title {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  z-index: 1000;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.title h1 {
+  font-size: 45px;
+  font-weight: bold;
+  color: #000000;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+.title p {
+  font-size: 20px;
+  font-weight: 400;
+  color: #000000;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 0, 0, 0.3);
+  margin: 10px 0 0 0;
+}
+
+/* Estilos para categorías */
+.categorias-container {
+  position: absolute;
+  top: 200px;
+  left: 20px;
+  z-index: 999;
+  padding: 20px;
+}
+
+.categorias-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  min-width: 280px;
+}
+
+.categorias-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #060738;
+  margin: 0 0 20px 0;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #4A90E2;
+}
+
+.categorias-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.categoria-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: capitalize;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.categoria-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.categoria-button mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.categoria-button span {
+  position: relative;
+  z-index: 1;
+}
+
+.categoria-button:hover {
+  transform: translateX(5px) translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.5);
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 50%, #2E6DA4 100%);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.categoria-button:hover::before {
+  left: 100%;
+}
+
+.categoria-button:hover mat-icon {
+  transform: translateX(3px) scale(1.15);
+}
+
+.categoria-button:active {
+  transform: translateX(2px) translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.categoria-button-all {
+  background: linear-gradient(135deg, #d32f2f 0%, #e53935 50%, #f44336 100%) !important;
+  font-weight: 600;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.categoria-button-all::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.categoria-button-all:hover {
+  background: linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #d32f2f 100%) !important;
+  transform: translateX(5px) translateY(-2px);
+  box-shadow: 0 8px 20px rgba(211, 47, 47, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.categoria-button-all:hover::before {
+  left: 100%;
+}
+
+.categoria-button-all:hover mat-icon {
+  transform: translateX(3px) scale(1.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .inicio-container {
+    min-height: calc(100vh - 90px);
+    padding: 10px;
+  }
+
+  .title {
+    top: 5px;
+    left: 0;
+    padding: 10px;
+  }
+
+  .title h1 {
+    font-size: 28px;
+  }
+
+  .title p {
+    font-size: 14px;
+  }
+
+  .categorias-container {
+    top: 120px;
+    left: 5px;
+    right: 5px;
+    padding: 10px;
+    position: relative;
+  }
+
+  .categorias-content {
+    min-width: auto;
+    width: 100%;
+    padding: 15px;
+  }
+
+  .categorias-title {
+    font-size: 18px;
+  }
+
+  .categoria-button {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inicio-container {
+    padding: 5px;
+  }
+
+  .title h1 {
+    font-size: 24px;
+  }
+
+  .title p {
+    font-size: 12px;
+  }
+
+  .categorias-container {
+    top: 100px;
+    left: 0;
+    right: 0;
+    padding: 5px;
+  }
+
+  .categorias-content {
+    padding: 12px;
+  }
+
+  .categorias-title {
+    font-size: 16px;
+  }
+
+  .categoria-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .categoria-button mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+

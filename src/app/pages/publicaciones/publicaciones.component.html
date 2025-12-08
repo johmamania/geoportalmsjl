@@ -1,0 +1,46 @@
+<div class="publicaciones-container">
+  <div class="publicaciones-content">
+    <div class="header-section">
+      <h1 class="main-title">
+        <mat-icon class="title-icon">library_books</mat-icon>
+        Publicaciones
+      </h1>
+      <p class="subtitle">Información actualizada sobre nuestro GeoPortal y servicios</p>
+    </div>
+
+    <div class="publicaciones-grid">
+      <mat-card *ngFor="let publicacion of publicaciones" class="publicacion-card">
+        <mat-card-header>
+          <div class="card-header-content">
+            <div class="categoria-badge" [style.background-color]="getCategoriaColor(publicacion.categoria)">
+              {{ publicacion.categoria }}
+            </div>
+            <div class="fecha-badge">
+              <mat-icon class="fecha-icon">calendar_today</mat-icon>
+              {{ publicacion.fecha }}
+            </div>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <h2 class="card-title">{{ publicacion.titulo }}</h2>
+          <p class="card-description">{{ publicacion.descripcion }}</p>
+        </mat-card-content>
+        
+        <mat-card-actions>
+          <div class="card-footer">
+            <div class="autor-info">
+              <mat-icon class="autor-icon">person</mat-icon>
+              <span>{{ publicacion.autor }}</span>
+            </div>
+            <button mat-raised-button color="primary" class="leer-mas-btn">
+              <mat-icon>arrow_forward</mat-icon>
+              Leer más
+            </button>
+          </div>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

@@ -1,0 +1,251 @@
+.publicaciones-container {
+  min-height: calc(100vh - 90px - 80px);
+  padding: 40px 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 247, 250, 0.95) 100%);
+  margin: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.publicaciones-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.header-section {
+  text-align: center;
+  margin-bottom: 50px;
+  padding: 30px 0;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3d6bb3 100%);
+  border-radius: 16px;
+  color: white;
+  box-shadow: 0 4px 20px rgba(30, 60, 114, 0.3);
+}
+
+.main-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.title-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.subtitle {
+  font-size: 20px;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+/* Grid de Publicaciones */
+.publicaciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+/* Tarjetas de Publicación */
+.publicacion-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.publicacion-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px;
+  gap: 10px;
+}
+
+.categoria-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.fecha-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.fecha-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+mat-card-content {
+  padding: 20px 16px;
+  flex: 1;
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e3c72;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.card-description {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+mat-card-actions {
+  padding: 16px;
+  margin: 0;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.autor-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 14px;
+}
+
+.autor-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #4A90E2;
+}
+
+.leer-mas-btn {
+  border-radius: 25px;
+  padding: 8px 20px;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+  transition: all 0.3s ease;
+}
+
+.leer-mas-btn:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+}
+
+.leer-mas-btn mat-icon {
+  margin-left: 5px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .publicaciones-container {
+    margin: 10px;
+    padding: 20px 15px;
+  }
+
+  .main-title {
+    font-size: 32px;
+  }
+
+  .title-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .publicaciones-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .card-title {
+    font-size: 20px;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .leer-mas-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .publicaciones-container {
+    margin: 5px;
+    padding: 15px 10px;
+  }
+
+  .main-title {
+    font-size: 28px;
+  }
+
+  .title-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .card-title {
+    font-size: 18px;
+  }
+
+  .card-description {
+    font-size: 14px;
+  }
+}

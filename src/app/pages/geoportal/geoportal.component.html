@@ -1,0 +1,120 @@
+<div class="example-container">
+  <mat-sidenav-container class="example-sidenav-container">
+    <mat-sidenav #wmsSidenav mode="side" position="end" opened="false" class="wms-sidenav">
+      <div class="wms-menu-header">
+        <h2>Capas WMS</h2>
+        <button mat-icon-button (click)="wmsSidenav.close()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="wms-menu-content">
+        <ng-container *ngFor="let category of getLayersByCategory() | keyvalue">
+          <div class="wms-category">
+            <h3 class="wms-category-title">{{ category.key }}</h3>
+            <mat-list>
+              <mat-list-item *ngFor="let layer of category.value">
+                <mat-checkbox
+                  [checked]="isWmsLayerVisible(layer.name)"
+                  (change)="toggleWmsLayer(layer)"
+                  class="wms-layer-checkbox">
+                  {{ layer.displayName }}
+                </mat-checkbox>
+              </mat-list-item>
+            </mat-list>
+            <mat-divider></mat-divider>
+          </div>
+        </ng-container>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <!-- Menú de tipos de mapa -->
+      <mat-menu #mapTypeMenu="matMenu">
+        <button mat-menu-item *ngFor="let mapType of mapTypes"
+                (click)="changeMapType(mapType.id)"
+                [class.selected]="selectedMapType() === mapType.id">
+          <mat-icon>{{ mapType.icon }}</mat-icon>
+          <span>{{ mapType.name }}</span>
+          <mat-icon *ngIf="selectedMapType() === mapType.id" class="check-icon">check</mat-icon>
+        </button>
+      </mat-menu>
+
+      <!-- Toolbar flotante de tipos de mapa -->
+      <div class="map-type-toolbar" [class.map-type-toolbar-hidden]="mapTypeToolbarHidden()" [class.map-type-toolbar-mobile]="isMobile()">
+        <!-- Botón para ocultar/mostrar (solo desktop) -->
+        <button mat-icon-button
+                class="map-type-toggle"
+                *ngIf="!isMobile()"
+                (click)="toggleMapTypeToolbar()"
+                matTooltip="{{ mapTypeToolbarHidden() ? 'Mostrar tipos de mapa' : 'Ocultar tipos de mapa' }}">
+          <mat-icon>{{ mapTypeToolbarHidden() ? 'keyboard_arrow_left' : 'keyboard_arrow_right' }}</mat-icon>
+        </button>
+
+        <!-- Botón de tipos de mapa -->
+        <button mat-raised-button
+                [matMenuTriggerFor]="mapTypeMenu"
+                class="map-type-button"
+                [class.map-type-button-mobile]="isMobile()">
+          <mat-icon>{{ getCurrentMapTypeIcon() }}</mat-icon>
+          <span *ngIf="!isMobile() && !mapTypeToolbarHidden()">{{ getCurrentMapTypeName() }}</span>
+          <mat-icon *ngIf="!isMobile() && !mapTypeToolbarHidden()">arrow_drop_down</mat-icon>
+        </button>
+      </div>
+
+      <div class="mapa-container">
+        <div class="mapa-content">
+
+          <div class="mapa-body">
+            <div id="map" class="mapa-mapa"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón flotante de leyenda -->
+      <button mat-fab
+              color="primary"
+              class="legend-button"
+              (click)="toggleLegend()"
+              matTooltip="Ver leyenda de categorías">
+        <mat-icon>{{ showLegend() ? 'close' : 'info' }}</mat-icon>
+      </button>
+
+      <!-- Panel de leyenda -->
+      <div class="legend-panel" [class.legend-panel-open]="showLegend()">
+        <div class="legend-header">
+          <h3>Leyenda de Categorías</h3>
+          <button mat-icon-button (click)="toggleLegend()" class="legend-close">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="legend-content">
+          <!-- Botón Ver Todas -->
+          <button mat-raised-button
+                  class="legend-button-item"
+                  [class.active]="categoryId === null || categoryId === '0'"
+                  (click)="filtrarPorCategoria('0')">
+            <mat-icon>map</mat-icon>
+            <span>Ver Todas las Ubicaciones</span>
+          </button>
+
+          <!-- Botones de categorías -->
+          <button mat-raised-button
+                  *ngFor="let categoria of getCategorias()"
+                  class="legend-button-item"
+                  [class.active]="categoryId === categoria.id"
+                  (click)="filtrarPorCategoria(categoria.id)">
+            <img [src]="getIconUrlByCategoryId(categoria.id)"
+                 [alt]="categoria.nombre"
+                 class="legend-icon">
+            <span>{{ categoria.nombre }}</span>
+          </button>
+        </div>
+      </div>
+
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
+<app-footer></app-footer>
+
