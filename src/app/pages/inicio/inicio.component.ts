@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { MaterialModule } from '../../material/material.module';
 import { Router } from '@angular/router';
 import { CategoriasService } from '../../services/categorias.service';
@@ -13,7 +13,7 @@ import { FooterComponent } from '../../components/footer/footer.component';
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.css'
 })
-export class InicioComponent {
+export class InicioComponent implements AfterViewInit {
   categorias = this.categoriasService.getCategorias();
   geojsonLayers = this.geojsonLayersService.getLayers();
 
@@ -40,13 +40,15 @@ export class InicioComponent {
   }
 
 
-  ngAfterViewInit() {
-  const video: any = document.querySelector('.background-video');
-  if (video) {
-    video.muted = true;
-    video.play();
+  ngAfterViewInit(): void {
+    const video: any = document.querySelector('.background-video');
+    if (video) {
+      video.muted = true;
+      video.play().catch((error: any) => {
+        console.warn('Error al reproducir video:', error);
+      });
+    }
   }
-}
 
 }
 

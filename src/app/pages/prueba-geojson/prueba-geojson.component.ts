@@ -279,20 +279,70 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   private loadGeoJsonLayer(layerConfig: GeoJsonLayer): void {
     const url = `assets/datos/${layerConfig.file}`;
 
-    this.http.get(url).subscribe({
-      next: (geoJson: any) => {
+    this.http.get(url, { responseType: 'json' }).subscribe({
+      next: (response: any) => {
+        // Validar y parsear la respuesta
+        let geoJson: any;
+
+        // Si la respuesta es un string, parsearlo
+        if (typeof response === 'string') {
+          try {
+            geoJson = JSON.parse(response);
+          } catch (e) {
+            console.error(`Error al parsear JSON de ${layerConfig.file}:`, e);
+            return;
+          }
+        } else {
+          geoJson = response;
+        }
+
+        // Validar que sea un objeto GeoJSON válido
+        if (!geoJson || typeof geoJson !== 'object') {
+          console.error(`Respuesta inválida de ${layerConfig.file}: no es un objeto`);
+          return;
+        }
+
+        // Validar que features sea un array
+        if (!Array.isArray(geoJson.features)) {
+          console.error(`GeoJSON inválido en ${layerConfig.file}: features no es un array`, geoJson);
+          // Intentar convertir a array si es un objeto
+          if (geoJson.features && typeof geoJson.features === 'object') {
+            geoJson.features = Object.values(geoJson.features);
+          } else {
+            geoJson.features = [];
+          }
+        }
+
         const format = new GeoJSON();
         const allFeatures: Feature[] = [];
         const featuresToAdd: Array<{ layerId: string; layerName: string; feature: GeoJsonFeature; icon: string }> = [];
 
         // Procesar cada feature del GeoJSON
         geoJson.features?.forEach((geoFeature: GeoJsonFeature) => {
+          // Validar que el feature tenga la estructura correcta
+          if (!geoFeature || !geoFeature.geometry || !geoFeature.geometry.type) {
+            console.warn(`Feature inválido en ${layerConfig.file}:`, geoFeature);
+            return;
+          }
+
           const geometryType = geoFeature.geometry?.type;
 
           // Si es MultiPoint, crear un feature por cada punto
           if (geometryType === 'MultiPoint') {
             const coordinates = geoFeature.geometry.coordinates;
+
+            // Validar que coordinates sea un array
+            if (!Array.isArray(coordinates)) {
+              console.error(`Coordinates no es un array en ${layerConfig.file}:`, coordinates);
+              return;
+            }
+
             coordinates.forEach((coord: number[], index: number) => {
+              // Validar que coord sea un array válido con al menos 2 elementos
+              if (!Array.isArray(coord) || coord.length < 2) {
+                console.warn(`Coordenada inválida en ${layerConfig.file}, índice ${index}:`, coord);
+                return;
+              }
               // Crear un nuevo feature para cada punto
               const pointFeature = new Feature({
                 geometry: new Point(fromLonLat(coord)),
@@ -322,17 +372,30 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
             });
           } else {
             // Para otros tipos de geometría, usar el feature directamente
-            const feature = format.readFeature(geoFeature, {
-              featureProjection: 'EPSG:3857'
-            });
-            allFeatures.push(feature);
+            try {
+              // Validar que el feature tenga coordenadas válidas
+              if (!geoFeature.geometry || !geoFeature.geometry.coordinates) {
+                console.warn(`Feature sin coordenadas válidas en ${layerConfig.file}:`, geoFeature);
+                return;
+              }
 
-            featuresToAdd.push({
-              layerId: layerConfig.id,
-              layerName: layerConfig.name,
-              feature: geoFeature,
-              icon: layerConfig.icon
-            });
+              const feature = format.readFeature(geoFeature, {
+                featureProjection: 'EPSG:3857'
+              });
+
+              if (feature) {
+                allFeatures.push(feature);
+
+                featuresToAdd.push({
+                  layerId: layerConfig.id,
+                  layerName: layerConfig.name,
+                  feature: geoFeature,
+                  icon: layerConfig.icon
+                });
+              }
+            } catch (error) {
+              console.error(`Error al leer feature de ${layerConfig.file}:`, error, geoFeature);
+            }
           }
         });
 
@@ -966,12 +1029,25 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     const layer = this.layers.get(featureItem.layerId);
     if (!layer) return;
 
-    const format = new GeoJSON();
-    const olFeature = format.readFeature(featureItem.feature, {
-      featureProjection: 'EPSG:3857'
-    });
+    try {
+      const format = new GeoJSON();
 
-    const geometry = olFeature.getGeometry();
+      // Validar que el feature tenga la estructura correcta
+      if (!featureItem.feature || !featureItem.feature.geometry) {
+        console.warn('Feature inválido para centrar:', featureItem.feature);
+        return;
+      }
+
+      const olFeature = format.readFeature(featureItem.feature, {
+        featureProjection: 'EPSG:3857'
+      });
+
+      if (!olFeature) {
+        console.warn('No se pudo leer el feature para centrar:', featureItem.feature);
+        return;
+      }
+
+      const geometry = olFeature.getGeometry();
     if (geometry) {
       let center: number[] | undefined;
 
@@ -1002,6 +1078,9 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
           this.showPointOptionsMenu(olFeature, center!);
         }, 1000);
       }
+    }
+    } catch (error) {
+      console.error('Error al centrar feature:', error, featureItem.feature);
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, signal, computed, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../material/material.module';
@@ -31,7 +31,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   displayedColumns: string[] = ['name', 'description', 'latitude', 'longitude', 'category', 'created_at', 'actions'];

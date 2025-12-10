@@ -9,10 +9,14 @@ export class SupabaseService {
   public supabase: SupabaseClient;
 
   constructor() {
-    this.supabase = createClient(
-      environment.supabase.url,
-      environment.supabase.anonKey
-    );
+    const url = environment.supabase?.url || '';
+    const anonKey = environment.supabase?.anonKey || '';
+    
+    if (!url || !anonKey) {
+      console.error('⚠️ Supabase configuration missing. Please check environment variables.');
+    }
+    
+    this.supabase = createClient(url, anonKey);
   }
 }
 

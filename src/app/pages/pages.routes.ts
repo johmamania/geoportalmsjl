@@ -56,7 +56,7 @@ export const pagesRoutes: Routes = [
   },
 
 
- 
+
 
   {   path: 'admin-map',    component: AdminComponent,   canActivate: [adminGuard]  },
   { path: '403', component: Not403Component },
