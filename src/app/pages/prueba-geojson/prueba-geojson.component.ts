@@ -317,87 +317,106 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         const allFeatures: Feature[] = [];
         const featuresToAdd: Array<{ layerId: string; layerName: string; feature: GeoJsonFeature; icon: string }> = [];
 
-        // Procesar cada feature del GeoJSON
-        geoJson.features?.forEach((geoFeature: GeoJsonFeature) => {
-          // Validar que el feature tenga la estructura correcta
-          if (!geoFeature || !geoFeature.geometry || !geoFeature.geometry.type) {
-            console.warn(`Feature inválido en ${layerConfig.file}:`, geoFeature);
-            return;
-          }
-
-          const geometryType = geoFeature.geometry?.type;
-
-          // Si es MultiPoint, crear un feature por cada punto
-          if (geometryType === 'MultiPoint') {
-            const coordinates = geoFeature.geometry.coordinates;
-
-            // Validar que coordinates sea un array
-            if (!Array.isArray(coordinates)) {
-              console.error(`Coordinates no es un array en ${layerConfig.file}:`, coordinates);
+        try {
+          // Procesar cada feature del GeoJSON
+          geoJson.features?.forEach((geoFeature: GeoJsonFeature) => {
+            // Validar que el feature tenga la estructura correcta
+            if (!geoFeature || !geoFeature.geometry || !geoFeature.geometry.type) {
+              console.warn(`Feature inválido en ${layerConfig.file}:`, geoFeature);
               return;
             }
 
-            coordinates.forEach((coord: number[], index: number) => {
-              // Validar que coord sea un array válido con al menos 2 elementos
-              if (!Array.isArray(coord) || coord.length < 2) {
-                console.warn(`Coordenada inválida en ${layerConfig.file}, índice ${index}:`, coord);
-                return;
-              }
-              // Crear un nuevo feature para cada punto
-              const pointFeature = new Feature({
-                geometry: new Point(fromLonLat(coord)),
-                ...geoFeature.properties,
-                originalIndex: index
-              });
-              allFeatures.push(pointFeature);
+            const geometryType = geoFeature.geometry?.type;
 
-              // Agregar a la lista con nombre único
-              featuresToAdd.push({
-                layerId: layerConfig.id,
-                layerName: layerConfig.name,
-                feature: {
-                  type: 'Feature',
-                  properties: {
-                    ...geoFeature.properties,
-                    pointIndex: index + 1,
-                    totalPoints: coordinates.length
-                  },
-                  geometry: {
-                    type: 'Point',
-                    coordinates: coord
-                  }
-                },
-                icon: layerConfig.icon
-              });
-            });
-          } else {
-            // Para otros tipos de geometría, usar el feature directamente
-            try {
-              // Validar que el feature tenga coordenadas válidas
-              if (!geoFeature.geometry || !geoFeature.geometry.coordinates) {
-                console.warn(`Feature sin coordenadas válidas en ${layerConfig.file}:`, geoFeature);
+            // Si es MultiPoint, crear un feature por cada punto manualmente
+            if (geometryType === 'MultiPoint') {
+              const coordinates = geoFeature.geometry.coordinates;
+
+              // Validar que coordinates sea un array
+              if (!Array.isArray(coordinates)) {
+                console.error(`Coordinates no es un array en ${layerConfig.file}:`, coordinates);
                 return;
               }
 
-              const feature = format.readFeature(geoFeature, {
-                featureProjection: 'EPSG:3857'
-              });
+              coordinates.forEach((coord: number[], coordIndex: number) => {
+                // Validar que coord sea un array válido con al menos 2 elementos
+                // Aceptar coordenadas con 2 o 3 elementos (longitud, latitud, [altura])
+                if (!Array.isArray(coord) || coord.length < 2) {
+                  console.warn(`Coordenada inválida en ${layerConfig.file}, índice ${coordIndex}:`, coord);
+                  return;
+                }
 
-              if (feature) {
-                allFeatures.push(feature);
+                // Usar solo los primeros 2 elementos (longitud, latitud)
+                const lonLat: [number, number] = [coord[0], coord[1]];
 
+                // Crear un nuevo feature para cada punto
+                const pointFeature = new Feature({
+                  geometry: new Point(fromLonLat(lonLat)),
+                  ...geoFeature.properties,
+                  originalIndex: coordIndex
+                });
+                allFeatures.push(pointFeature);
+
+                // Agregar a la lista con nombre único
                 featuresToAdd.push({
                   layerId: layerConfig.id,
                   layerName: layerConfig.name,
-                  feature: geoFeature,
+                  feature: {
+                    type: 'Feature',
+                    properties: {
+                      ...geoFeature.properties,
+                      pointIndex: coordIndex + 1,
+                      totalPoints: coordinates.length
+                    },
+                    geometry: {
+                      type: 'Point',
+                      coordinates: lonLat
+                    }
+                  },
                   icon: layerConfig.icon
                 });
+              });
+            } else {
+              // Para otros tipos de geometría, usar readFeature con el feature individual
+              try {
+                // Validar que el feature tenga coordenadas válidas
+                if (!geoFeature.geometry || !geoFeature.geometry.coordinates) {
+                  console.warn(`Feature sin coordenadas válidas en ${layerConfig.file}:`, geoFeature);
+                  return;
+                }
+
+                // Normalizar coordenadas si tienen 3 elementos (quitar altura)
+                if (geoFeature.geometry.type === 'Point' && Array.isArray(geoFeature.geometry.coordinates)) {
+                  const coords = geoFeature.geometry.coordinates;
+                  if (coords.length === 3) {
+                    geoFeature.geometry.coordinates = [coords[0], coords[1]];
+                  }
+                }
+
+                const feature = format.readFeature(geoFeature, {
+                  featureProjection: 'EPSG:3857',
+                  dataProjection: 'EPSG:4326'
+                });
+
+                if (feature) {
+                  allFeatures.push(feature);
+
+                  featuresToAdd.push({
+                    layerId: layerConfig.id,
+                    layerName: layerConfig.name,
+                    feature: geoFeature,
+                    icon: layerConfig.icon
+                  });
+                }
+              } catch (error) {
+                console.error(`Error al leer feature de ${layerConfig.file}:`, error, geoFeature);
               }
-            } catch (error) {
-              console.error(`Error al leer feature de ${layerConfig.file}:`, error, geoFeature);
             }
-          }
-        });
+          });
+        } catch (error) {
+          console.error(`Error al procesar GeoJSON de ${layerConfig.file}:`, error);
+          return;
+        }
 
         // Crear capa vectorial
         const vectorSource = new VectorSource({
