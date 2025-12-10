@@ -279,47 +279,53 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   private loadGeoJsonLayer(layerConfig: GeoJsonLayer): void {
     const url = `assets/datos/${layerConfig.file}`;
 
-    this.http.get(url, { responseType: 'json' }).subscribe({
-      next: (response: any) => {
+    // Usar responseType: 'text' para tener control total sobre el parsing
+    this.http.get(url, { responseType: 'text' }).subscribe({
+      next: (responseText: string) => {
         // Validar y parsear la respuesta
         let geoJson: any;
 
-        // Si la respuesta es un string, parsearlo
-        if (typeof response === 'string') {
-          try {
-            geoJson = JSON.parse(response);
-          } catch (e) {
-            console.error(`Error al parsear JSON de ${layerConfig.file}:`, e);
-            return;
-          }
-        } else {
-          geoJson = response;
+        try {
+          // Parsear el JSON manualmente
+          geoJson = JSON.parse(responseText);
+        } catch (e) {
+          console.error(`Error al parsear JSON de ${layerConfig.file}:`, e);
+          return;
         }
 
         // Validar que sea un objeto GeoJSON válido
-        if (!geoJson || typeof geoJson !== 'object') {
-          console.error(`Respuesta inválida de ${layerConfig.file}: no es un objeto`);
+        if (!geoJson || typeof geoJson !== 'object' || Array.isArray(geoJson)) {
+          console.error(`Respuesta inválida de ${layerConfig.file}: no es un objeto válido`);
+          return;
+        }
+
+        // Validar que tenga la estructura de FeatureCollection
+        if (geoJson.type !== 'FeatureCollection') {
+          console.error(`GeoJSON inválido en ${layerConfig.file}: no es un FeatureCollection`, geoJson.type);
           return;
         }
 
         // Validar que features sea un array
         if (!Array.isArray(geoJson.features)) {
-          console.error(`GeoJSON inválido en ${layerConfig.file}: features no es un array`, geoJson);
+          console.error(`GeoJSON inválido en ${layerConfig.file}: features no es un array`, typeof geoJson.features);
           // Intentar convertir a array si es un objeto
-          if (geoJson.features && typeof geoJson.features === 'object') {
+          if (geoJson.features && typeof geoJson.features === 'object' && !Array.isArray(geoJson.features)) {
             geoJson.features = Object.values(geoJson.features);
           } else {
             geoJson.features = [];
           }
         }
 
+        // Crear una copia profunda para evitar modificar el original
+        const geoJsonCopy = JSON.parse(JSON.stringify(geoJson));
+
         const format = new GeoJSON();
         const allFeatures: Feature[] = [];
         const featuresToAdd: Array<{ layerId: string; layerName: string; feature: GeoJsonFeature; icon: string }> = [];
 
         try {
-          // Procesar cada feature del GeoJSON
-          geoJson.features?.forEach((geoFeature: GeoJsonFeature) => {
+          // Procesar cada feature del GeoJSON usando la copia
+          geoJsonCopy.features?.forEach((geoFeature: GeoJsonFeature) => {
             // Validar que el feature tenga la estructura correcta
             if (!geoFeature || !geoFeature.geometry || !geoFeature.geometry.type) {
               console.warn(`Feature inválido en ${layerConfig.file}:`, geoFeature);
@@ -386,14 +392,31 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
                 }
 
                 // Normalizar coordenadas si tienen 3 elementos (quitar altura)
-                if (geoFeature.geometry.type === 'Point' && Array.isArray(geoFeature.geometry.coordinates)) {
-                  const coords = geoFeature.geometry.coordinates;
+                // Crear una copia del feature para no modificar el original
+                const normalizedFeature = JSON.parse(JSON.stringify(geoFeature));
+
+                if (normalizedFeature.geometry.type === 'Point' && Array.isArray(normalizedFeature.geometry.coordinates)) {
+                  const coords = normalizedFeature.geometry.coordinates;
                   if (coords.length === 3) {
-                    geoFeature.geometry.coordinates = [coords[0], coords[1]];
+                    normalizedFeature.geometry.coordinates = [coords[0], coords[1]];
+                  }
+                  // Validar que las coordenadas sean números válidos
+                  if (!Array.isArray(normalizedFeature.geometry.coordinates) ||
+                      normalizedFeature.geometry.coordinates.length < 2 ||
+                      typeof normalizedFeature.geometry.coordinates[0] !== 'number' ||
+                      typeof normalizedFeature.geometry.coordinates[1] !== 'number') {
+                    console.warn(`Coordenadas inválidas en ${layerConfig.file}:`, normalizedFeature.geometry.coordinates);
+                    return;
                   }
                 }
 
-                const feature = format.readFeature(geoFeature, {
+                // Validar que el feature tenga una estructura válida antes de pasarlo a OpenLayers
+                if (!normalizedFeature.geometry || !normalizedFeature.geometry.type || !normalizedFeature.geometry.coordinates) {
+                  console.warn(`Feature con estructura inválida en ${layerConfig.file}:`, normalizedFeature);
+                  return;
+                }
+
+                const feature = format.readFeature(normalizedFeature, {
                   featureProjection: 'EPSG:3857',
                   dataProjection: 'EPSG:4326'
                 });
@@ -451,6 +474,18 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
       },
       error: (error) => {
         console.error(`Error al cargar ${layerConfig.file}:`, error);
+        // Intentar cargar con ruta absoluta como fallback
+        if (error.status === 404 || error.status === 0) {
+          console.warn(`Archivo no encontrado en ${url}, intentando con ruta alternativa...`);
+          // No hacer nada más, el archivo simplemente no se cargará
+        } else {
+          console.error(`Error HTTP al cargar ${layerConfig.file}:`, {
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            url: url
+          });
+        }
       }
     });
   }
