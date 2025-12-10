@@ -17,7 +17,7 @@ export class AdminAuthService {
   constructor(private supabaseService: SupabaseService) {
     // Verificar si hay sesión guardada
     this.checkStoredSession();
-    
+
     // Escuchar cambios en la autenticación
     this.supabaseService.supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
@@ -34,8 +34,18 @@ export class AdminAuthService {
 
   /**
    * Autentica un usuario administrador usando Supabase Auth
+   * @param credentials - Credenciales de login (username y password)
+   * @returns Observable con la respuesta de autenticación
    */
-  login(credentials: AdminLoginRequest): Observable<AdminLoginResponse> {
+  public login(credentials: AdminLoginRequest): Observable<AdminLoginResponse> {
+    // Validar credenciales
+    if (!credentials || !credentials.username || !credentials.password) {
+      return throwError(() => ({
+        success: false,
+        message: 'Credenciales inválidas'
+      }));
+    }
+
     // Primero autenticar con Supabase Auth
     // Asumimos que el username es el email o podemos buscar el email del usuario
     return from(
@@ -61,7 +71,7 @@ export class AdminAuthService {
 
         // Verificar si el usuario es administrador
         const adminUser = await this.getAdminUserByUserId(response.data.user.id);
-        
+
         if (!adminUser) {
           // Si no es admin, cerrar sesión
           await this.supabaseService.supabase.auth.signOut();
@@ -136,7 +146,7 @@ export class AdminAuthService {
           .select('*')
           .eq('user_id', userId)
           .single();
-        
+
         if (userByIdData && !userByIdData.error) {
           return userByIdData as AdminUser;
         }
@@ -198,7 +208,7 @@ export class AdminAuthService {
     this.isAuthenticated.set(true);
     this.currentUser.set(user);
     this.accessCode.set(user.access_code);
-    
+
     // Guardar en localStorage
     localStorage.setItem('admin_user_id', user.id);
     localStorage.setItem('admin_access_code', user.access_code || '');
@@ -211,11 +221,11 @@ export class AdminAuthService {
   private async checkStoredSession(): Promise<void> {
     // Verificar sesión de Supabase Auth
     const { data: { session } } = await this.supabaseService.supabase.auth.getSession();
-    
+
     if (session) {
       this.session.set(session);
       const adminUser = await this.getAdminUserByUserId(session.user.id);
-      
+
       if (adminUser && adminUser.is_active) {
         this.setSession(adminUser);
       } else {
@@ -250,12 +260,12 @@ export class AdminAuthService {
   async logout(): Promise<void> {
     // Cerrar sesión en Supabase
     await this.supabaseService.supabase.auth.signOut();
-    
+
     this.isAuthenticated.set(false);
     this.currentUser.set(null);
     this.accessCode.set(null);
     this.session.set(null);
-    
+
     localStorage.removeItem('admin_user_id');
     localStorage.removeItem('admin_access_code');
     localStorage.removeItem('admin_username');

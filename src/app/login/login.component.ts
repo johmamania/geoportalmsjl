@@ -59,6 +59,34 @@ export class LoginComponent {
     this.error = '';
     this.message = '';
 
+    // Validar que el servicio esté disponible
+    if (!this.adminAuthService) {
+      console.error('AdminAuthService no está disponible');
+      this.loading.set(false);
+      this.error = 'Error de configuración del servicio';
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error de configuración del servicio de autenticación',
+        confirmButtonColor: '#d32f2f'
+      });
+      return;
+    }
+
+    // Validar que el método login exista
+    if (typeof this.adminAuthService.login !== 'function') {
+      console.error('El método login no está disponible en AdminAuthService');
+      this.loading.set(false);
+      this.error = 'Error de configuración del servicio';
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El método de autenticación no está disponible',
+        confirmButtonColor: '#d32f2f'
+      });
+      return;
+    }
+
     const swalWithCustomTitle = Swal.mixin({
       customClass: {
         popup: 'custom-swal-popup',
@@ -91,7 +119,22 @@ export class LoginComponent {
       password: this._formulario.get('password')?.value
     };
 
-    this.adminAuthService.login(credentials).subscribe({
+    // Validar credenciales antes de enviar
+    if (!credentials.username || !credentials.password) {
+      Swal.close();
+      this.loading.set(false);
+      this.error = 'Por favor, complete todos los campos';
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: this.error,
+        confirmButtonColor: '#d32f2f'
+      });
+      return;
+    }
+
+    try {
+      this.adminAuthService.login(credentials).subscribe({
       next: (response) => {
         Swal.close();
         this.loading.set(false);
@@ -140,7 +183,8 @@ export class LoginComponent {
       error: (error) => {
         Swal.close();
         this.loading.set(false);
-        this.error = 'Error al conectar con el servidor';
+        const errorMessage = error?.message || error?.error?.message || 'Error al conectar con el servidor';
+        this.error = errorMessage;
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -149,6 +193,18 @@ export class LoginComponent {
         });
       }
     });
+    } catch (error: any) {
+      Swal.close();
+      this.loading.set(false);
+      console.error('Error al llamar al método login:', error);
+      this.error = 'Error al iniciar el proceso de autenticación';
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: this.error,
+        confirmButtonColor: '#d32f2f'
+      });
+    }
   }
 
   private verifyAccessCode(): void {
