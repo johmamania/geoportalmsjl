@@ -30,12 +30,21 @@ export class AdminAuthService {
         this.accessCode.set(null);
       }
     });
+
+    // Referencia explícita al método login para evitar que sea eliminado por tree-shaking
+    // Esto asegura que el método esté disponible en producción
+    if (typeof this.login === 'function') {
+      // El método existe, esto previene que sea eliminado
+      (this as any).__loginMethod = this.login;
+    }
   }
 
   /**
    * Autentica un usuario administrador usando Supabase Auth
    * @param credentials - Credenciales de login (username y password)
    * @returns Observable con la respuesta de autenticación
+   *
+   * IMPORTANTE: Este método debe mantenerse público y no ser eliminado por tree-shaking
    */
   public login(credentials: AdminLoginRequest): Observable<AdminLoginResponse> {
     // Validar credenciales
