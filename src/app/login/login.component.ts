@@ -25,6 +25,7 @@ export class LoginComponent {
   loading = signal(false);
   showCodeInput = signal(false);
   accessCodeValue = signal<string | null>(null);
+  showPassword = false;
 
   constructor(
     public dialog: MatDialog,
@@ -100,15 +101,26 @@ export class LoginComponent {
           this.showCodeInput.set(true);
           this.message = `Código de acceso generado: ${response.access_code}`;
 
+          // Obtener los últimos 4 caracteres del código
+          const codeLength = response.access_code.length;
+          const last4Digits = response.access_code.substring(codeLength - 4);
+          const maskedCode = '*'.repeat(codeLength - 4) + last4Digits;
+
+          // Setear automáticamente el código completo en el campo (oculto para el usuario)
+          this._formulario.patchValue({
+            accessCode: response.access_code
+          });
+          this.accessCode = response.access_code;
+
           // Mostrar código en SweetAlert
           Swal.fire({
             title: 'Código de Acceso Generado',
             html: `
               <div style="text-align: center; padding: 20px;">
                 <h2 style="font-family: 'Courier New', monospace; font-size: 32px; color: #1e3c72; letter-spacing: 2px; margin: 20px 0;">
-                  ${response.access_code}
+                  ${maskedCode}
                 </h2>
-                <p style="color: #666; margin-top: 20px;">Ingrese este código para continuar</p>
+                <p style="color: #666; margin-top: 20px;">Código configurado automáticamente. Verifique los últimos 4 dígitos.</p>
               </div>
             `,
             icon: 'info',
@@ -154,7 +166,7 @@ export class LoginComponent {
         confirmButtonColor: '#1e3c72'
       }).then(() => {
         this.dialogRef.close();
-        this.router.navigate(['/admin/admin-map']);
+        this.router.navigate(['/admin-map']);
       });
     } else {
       this.error = 'Código de acceso incorrecto';
@@ -177,5 +189,16 @@ export class LoginComponent {
     this.error = '';
     this.message = '';
     this._formulario.reset();
+  }
+
+  getMaskedCode(): string {
+    const code = this.accessCodeValue();
+    if (!code) return '';
+    
+    const codeLength = code.length;
+    if (codeLength <= 4) return code;
+    
+    const last4Digits = code.substring(codeLength - 4);
+    return '*'.repeat(codeLength - 4) + last4Digits;
   }
 }

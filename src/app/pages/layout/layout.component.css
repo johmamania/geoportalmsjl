@@ -72,7 +72,7 @@
    BARRA DE NAVEGACIÓN VERDE OLIVA
    ============================================ */
 .nav-toolbar {
-  background-color: #6b8e23 !important;
+  background-color: #398cc4 !important;
   color: #f5f5f5;
   height: 60px;
   min-height: 60px;
@@ -159,8 +159,8 @@
 }
 
 .nav-link-active {
-  background-color: #87ceeb !important;
-  color: #1a1a1a !important;
+  background-color: #11dd22 !important;
+  color: #050404 !important;
   font-weight: 600;
 }
 
@@ -174,7 +174,7 @@
    ============================================ */
 .content-wrapper {
   /* Altura del toolbar: 30px (top) + 60px (nav) = 90px */
-  margin-top: 50px !important;
+  margin-top: 57px !important;
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
@@ -321,7 +321,7 @@
 }
 
 .mobile-nav-link-active {
-  background-color: #87ceeb !important;
+  background-color: #12c722 !important;
   color: #1a1a1a !important;
   font-weight: 600;
 }
@@ -371,7 +371,6 @@
   .nav-title {
     font-size: 14px;
     display: -webkit-box;
-    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

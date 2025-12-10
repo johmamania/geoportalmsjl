@@ -9,8 +9,9 @@
   background: #f5f7fa;
   overflow-x: hidden;
   overflow-y: hidden;
-  height: 100vh;
-  max-height: 100vh;
+  height: 90vh;
+  max-height: 85vh;
+  margin-top: 56px;
 }
 
 .example-sidenav-container {

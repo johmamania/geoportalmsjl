@@ -33,12 +33,13 @@ export const adminGuard: CanActivateFn = async (route, state) => {
       }
     }
 
-    // Redirigir al login de administración
-    router.navigate(['/admin/login']);
+    // Redirigir a página 403 (acceso denegado)
+    router.navigate(['/403']);
     return false;
   } catch (error) {
     console.error('Error en guard:', error);
-    router.navigate(['/admin/login']);
+    // Redirigir a página 403 (acceso denegado)
+    router.navigate(['/403']);
     return false;
   }
 };

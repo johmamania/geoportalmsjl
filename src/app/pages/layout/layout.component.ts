@@ -9,6 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import Swal from 'sweetalert2';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CategoriasService } from '../../services/categorias.service';
+import { MenuService, MenuItem } from '../../services/menu.service';
 import { NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -21,6 +22,7 @@ import { filter } from 'rxjs/operators';
 })
 export class LayoutComponent implements OnInit, OnDestroy {
   categorias = this.categoriasService.getCategorias();
+  menuItems: MenuItem[] = [];
   isScrolled = false;
   lastScrollTop = 0;
   showToolbar = true;
@@ -30,9 +32,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private categoriasService: CategoriasService
+    private categoriasService: CategoriasService,
+    private menuService: MenuService
   ) {
     this.checkIfMobile();
+    this.menuItems = this.menuService.getMenuItems();
   }
 
   checkIfMobile(): void {

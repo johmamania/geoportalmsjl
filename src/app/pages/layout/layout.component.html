@@ -4,9 +4,9 @@
 
   <!-- Sidenav Container (solo para móvil) -->
   <mat-sidenav-container class="main-sidenav-container" *ngIf="isMobile">
-    <mat-sidenav #mobileMenu 
-                 mode="over" 
-                 position="end" 
+    <mat-sidenav #mobileMenu
+                 mode="over"
+                 position="end"
                  [opened]="menuOpened"
                  (closedStart)="closeMenu()"
                  class="mobile-menu-sidenav">
@@ -18,39 +18,15 @@
       </div>
       <mat-divider></mat-divider>
       <div class="mobile-menu-content">
-        <button mat-button
+        <button *ngFor="let menuItem of menuItems"
+                mat-button
                 class="mobile-nav-link"
-                [routerLink]="['/']"
+                [routerLink]="[menuItem.route]"
                 routerLinkActive="mobile-nav-link-active"
-                [routerLinkActiveOptions]="{exact: true}"
+                [routerLinkActiveOptions]="menuItem.routerLinkActiveOptions || {exact: menuItem.exact || false}"
                 (click)="closeMenu()">
-          <mat-icon>home</mat-icon>
-          <span>INICIO</span>
-        </button>
-        <button mat-button
-                class="mobile-nav-link"
-                [routerLink]="['/geoportal']"
-                routerLinkActive="mobile-nav-link-active"
-                [routerLinkActiveOptions]="{paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored'}"
-                (click)="closeMenu()">
-          <mat-icon>map</mat-icon>
-          <span>GEOPORTAL DE LA INFORMACIÓN</span>
-        </button>
-        <button mat-button
-                class="mobile-nav-link"
-                [routerLink]="['/publicaciones']"
-                routerLinkActive="mobile-nav-link-active"
-                (click)="closeMenu()">
-          <mat-icon>library_books</mat-icon>
-          <span>PUBLICACIONES</span>
-        </button>
-        <button mat-button
-                class="mobile-nav-link"
-                [routerLink]="['/contactanos']"
-                routerLinkActive="mobile-nav-link-active"
-                (click)="closeMenu()">
-          <mat-icon>contact_mail</mat-icon>
-          <span>CONTACTANOS</span>
+          <mat-icon>{{ menuItem.icon }}</mat-icon>
+          <span>{{ menuItem.label }}</span>
         </button>
       </div>
     </mat-sidenav>
@@ -90,8 +66,8 @@
   <!-- Layout para desktop (sin sidenav) -->
   <div class="desktop-layout" *ngIf="!isMobile">
     <!-- Toolbar Superior -->
-    <div class="toolbar-container" 
-         [class.toolbar-scrolled]="isScrolled" 
+    <div class="toolbar-container"
+         [class.toolbar-scrolled]="isScrolled"
          [class.toolbar-hidden]="!showToolbar">
       <!-- Barra superior oscura -->
       <mat-toolbar class="top-toolbar">
@@ -105,24 +81,14 @@
           <span class="nav-title"> Municipalidad Distrital de San Juan de Lurigancho, Portal de la Información</span>
         </div>
         <div class="nav-toolbar-right">
-          <button mat-button
+          <button *ngFor="let menuItem of menuItems"
+                  mat-button
                   class="nav-link"
-                  [routerLink]="['/']"
+                  [routerLink]="[menuItem.route]"
                   routerLinkActive="nav-link-active"
-                  [routerLinkActiveOptions]="{exact: true}">INICIO</button>
-          <button mat-button
-                  class="nav-link"
-                  [routerLink]="['/geoportal']"
-                  routerLinkActive="nav-link-active"
-                  [routerLinkActiveOptions]="{paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored'}">GEOPORTAL DE LA INFORMACIÓN</button>
-          <button mat-button
-                  class="nav-link"
-                  [routerLink]="['/publicaciones']"
-                  routerLinkActive="nav-link-active">PUBLICACIONES</button>
-          <button mat-button
-                  class="nav-link"
-                  [routerLink]="['/contactanos']"
-                  routerLinkActive="nav-link-active">CONTACTANOS</button>
+                  [routerLinkActiveOptions]="menuItem.routerLinkActiveOptions || {exact: menuItem.exact || false}">
+            {{ menuItem.label }}
+          </button>
         </div>
       </mat-toolbar>
     </div>

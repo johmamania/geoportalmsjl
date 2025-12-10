@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { MaterialModule } from '../../material/material.module';
 import { MapDataService } from '../../services/map-data.service';
 import { AdminAuthService } from '../../services/admin-auth.service';
+import { CategoriasService, Categoria } from '../../services/categorias.service';
 import { MapPoint, MapPointCreate } from '../../model/map-point';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -45,15 +46,17 @@ export class AdminComponent implements OnInit {
   searchTerm: string = '';
 
   // Paginación
-  pageSize = signal(10);
+  pageSize = signal(7);
   pageIndex = signal(0);
   totalItems = signal(0);
-  pageSizeOptions = [5, 10, 25, 50,70,100,150,200,300];
+  pageSizeOptions = [7, 10, 25, 50,70,100,150,200,300];
+  categorias: Categoria[] = [];
 
   constructor(
     private fb: FormBuilder,
     private mapDataService: MapDataService,
     private authService: AdminAuthService,
+    private categoriasService: CategoriasService,
     private dialog: MatDialog,
     private router: Router
   ) {
@@ -69,6 +72,7 @@ export class AdminComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.categorias = this.categoriasService.getCategorias();
     this.loadPoints();
     this.mapDataService.getPoints().subscribe(points => {
       this.updateDataSource(points);
@@ -297,8 +301,40 @@ export class AdminComponent implements OnInit {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/admin/login']);
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: '¿Desea cerrar sesión?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#d32f2f',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, cerrar sesión',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Cerrar sesión
+        this.authService.logout();
+
+        // Mostrar mensaje de éxito
+        Swal.fire({
+          icon: 'success',
+          title: 'Sesión cerrada',
+          text: 'Has cerrado sesión correctamente',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        }).then(() => {
+          // Redirigir a la página principal
+          this.router.navigate(['/']).then(() => {
+            // Forzar recarga para limpiar cualquier estado residual
+            window.location.href = '/';
+          });
+        });
+      }
+    });
   }
 
   formatDate(dateString?: string): string {

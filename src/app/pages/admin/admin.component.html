@@ -189,9 +189,9 @@
             <mat-form-field appearance="fill" class="half-width">
               <mat-label>Categoría</mat-label>
               <mat-select formControlName="category">
-                <mat-option value="1">Punto de Reunión</mat-option>
-                <mat-option value="2">Punto de Referencia</mat-option>
-                <mat-option value="3">Punto de Interés</mat-option>
+                <mat-option *ngFor="let categoria of categorias" [value]="categoria.id">
+                  {{ categoria.nombre }}
+                </mat-option>
               </mat-select>
             </mat-form-field>
 

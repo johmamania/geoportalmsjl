@@ -38,15 +38,27 @@
         <!-- Campo de código de acceso (segunda fase) -->
         <div *ngIf="showCodeInput()">
           <div class="access-code-display">
-            <p>Código de acceso generado:</p>
-            <h2>{{ accessCodeValue() }}</h2>
-            <p class="access-code-hint">Ingrese este código para continuar</p>
+            <p>Código de acceso configurado automáticamente:</p>
+            <h2>{{ getMaskedCode() }}</h2>
+            <p class="access-code-hint">Últimos 4 dígitos visibles. Verifique y confirme.</p>
           </div>
           <mat-form-field class="example-full-width" appearance="fill">
             <mat-label style="font-weight: bold;">CÓDIGO DE ACCESO</mat-label>
             <mat-icon matPrefix>vpn_key</mat-icon>
-            <input matInput type="text" formControlName="accessCode" name="accessCode"
-              placeholder="Ej: 2025$1223" [(ngModel)]="accessCode" class="access-code" />
+            <input matInput
+                   [type]="showPassword ? 'text' : 'password'"
+                   formControlName="accessCode"
+                   name="accessCode"
+                   [placeholder]="getMaskedCode() || 'Código configurado automáticamente'"
+                   [(ngModel)]="accessCode"
+                   class="access-code" />
+            <button mat-icon-button
+                    matSuffix
+                    (click)="showPassword = !showPassword"
+                    type="button"
+                    matTooltip="{{ showPassword ? 'Ocultar' : 'Mostrar' }} código">
+              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
             <mat-error *ngIf="_formulario.get('accessCode')?.hasError('required')">
               El código de acceso es requerido
             </mat-error>

@@ -184,7 +184,16 @@
   margin-bottom: 0;
 }
 
-.btn-home {
+.error-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.btn-home,
+.btn-login {
   background: linear-gradient(135deg, #4CAF50 0%, #388E3C 50%, #2E7D32 100%) !important;
   color: white !important;
   font-weight: 600 !important;
@@ -196,8 +205,13 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
   text-transform: none !important;
+  min-width: 180px;
+}
+
+.btn-login {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #1565C0 100%) !important;
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4) !important;
 }
 
 .btn-home:hover {
@@ -206,14 +220,22 @@
   box-shadow: 0 8px 20px rgba(76, 175, 80, 0.5) !important;
 }
 
-.btn-home mat-icon {
+.btn-login:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 50%, #0D47A1 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.5) !important;
+}
+
+.btn-home mat-icon,
+.btn-login mat-icon {
   font-size: 24px;
   width: 24px;
   height: 24px;
   transition: transform 0.3s ease;
 }
 
-.btn-home:hover mat-icon {
+.btn-home:hover mat-icon,
+.btn-login:hover mat-icon {
   transform: translateX(-3px) scale(1.1);
 }
 

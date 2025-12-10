@@ -1,23 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
+<div class="error-container">
+  <div class="error-content">
+    <div class="error-number">
+      <span class="number">4</span>
+      <span class="number">0</span>
+      <span class="number">4</span>
+    </div>
+    <h1 class="error-title">Página No Encontrada</h1>
+    <p class="error-message">
+      Lo sentimos, la página que buscas no existe o ha sido movida.
+    </p>
+    <div class="error-actions">
+      <button mat-raised-button color="primary" routerLink="/" class="home-button">
+        <mat-icon>home</mat-icon>
+        Volver al Portal
+      </button>
 
-<head>
-  <!-- Simple HttpErrorPages | MIT X11 License | https://github.com/AndiDittrich/HttpErrorPages -->
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>404 - PAGE NOT FOUND</title>
-</head>
-
-<body>
-  <div class="cover">
-    <h1>PAGE NOT FOUND
-      <small>Error 404</small>
-    </h1>    
-    <a routerLink="/login">Login</a>
+    </div>
   </div>
-
-</body>
-
-</html>
+  <div class="error-background">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
+    </div>
+  </div>
+</div>

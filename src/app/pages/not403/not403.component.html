@@ -1,29 +1,50 @@
 <div class="error-container">
   <div class="error-content">
-   
+
     <h1 class="error-title">
       <span class="error-code">403</span>
       <span class="error-text">Access Denied</span>
     </h1>
 
     <div class="error-message">
-      <mat-icon class="message-icon">person_off</mat-icon>
-      <p class="lead">
+      <mat-icon class="message-icon">lock</mat-icon>
+      <p class="lead" *ngIf="isAuthenticated && username">
         <strong>{{username}}</strong> no tiene permisos para acceder a esta página
+      </p>
+      <p class="lead" *ngIf="!isAuthenticated">
+        <strong>Acceso Denegado</strong>
       </p>
     </div>
 
     <div class="error-description">
-      <p>Lo sentimos, pero no tienes los permisos necesarios para ver este contenido.</p>
+      <p *ngIf="isAuthenticated">
+        Lo sentimos, pero no tienes los permisos necesarios para ver este contenido.
+      </p>
+      <p *ngIf="!isAuthenticated">
+        Debes iniciar sesión para acceder a esta página.
+      </p>
       <p>Por favor, contacta al administrador si crees que esto es un error.</p>
     </div>
 
-    <button mat-raised-button
-            class="btn-home"
-            routerLink="/pages/inicio">
-      <mat-icon>home</mat-icon>
-      Volver al Inicio
-    </button>
+    <div class="error-actions">
+      <button mat-raised-button
+              color="primary"
+              class="btn-home"
+              routerLink="/inicio"
+              *ngIf="!isAuthenticated">
+        <mat-icon>home</mat-icon>
+        Volver al Potal
+      </button>
+
+      <button mat-raised-button
+              color="primary"
+              class="btn-home"
+              routerLink="/inicio"
+              *ngIf="isAuthenticated">
+        <mat-icon>home</mat-icon>
+        Volver al Inicio
+      </button>
+    </div>
   </div>
 
   <div class="error-background">

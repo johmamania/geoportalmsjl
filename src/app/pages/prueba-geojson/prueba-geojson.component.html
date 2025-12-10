@@ -1,0 +1,102 @@
+<div class="geojson-container">
+  <!-- Menú lateral de selección de capas -->
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav #sidenav mode="side" position="start" [opened]="menuOpen()" class="layers-sidenav">
+      <div class="sidenav-header">
+        <h2>Capas GeoJSON</h2>
+        <button mat-icon-button (click)="toggleMenu()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="sidenav-content">
+        <mat-list>
+          <mat-list-item *ngFor="let layer of geoJsonLayers">
+            <mat-checkbox
+              [checked]="isLayerVisible(layer.id)"
+              (change)="toggleLayer(layer.id)"
+              class="layer-checkbox">
+              <div class="layer-item">
+                <img [src]="layer.icon" [alt]="layer.name" class="layer-icon">
+                <span>{{ layer.name }}</span>
+              </div>
+            </mat-checkbox>
+          </mat-list-item>
+        </mat-list>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <!-- Toolbar superior -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <button mat-icon-button (click)="toggleMenu()" matTooltip="Mostrar/Ocultar Menú">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <h1 class="toolbar-title"> </h1>
+        </div>
+        <div class="toolbar-right">
+          <!-- Menú de tipos de mapa -->
+          <mat-menu #mapTypeMenu="matMenu">
+            <button mat-menu-item *ngFor="let mapType of mapTypes"
+                    (click)="changeMapType(mapType.id)"
+                    [class.selected]="selectedMapType() === mapType.id">
+              <mat-icon>{{ mapType.icon }}</mat-icon>
+              <span>{{ mapType.name }}</span>
+              <mat-icon *ngIf="selectedMapType() === mapType.id" class="check-icon">check</mat-icon>
+            </button>
+          </mat-menu>
+
+          <!-- Botón de tipos de mapa -->
+          <button mat-raised-button
+                  [matMenuTriggerFor]="mapTypeMenu"
+                  class="map-type-button">
+            <mat-icon>{{ getCurrentMapTypeIcon() }}</mat-icon>
+            <span class="map-type-text">{{ getCurrentMapTypeName() }}</span>
+            <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor principal -->
+      <div class="main-content">
+        <!-- Panel de lista de ubicaciones -->
+        <div class="list-panel">
+          <div class="list-header">
+            <h3>Ubicaciones Cargadas</h3>
+            <span class="count-badge">{{ featuresList.length }}</span>
+          </div>
+          <div class="list-content">
+            <div *ngIf="featuresList.length === 0" class="empty-state">
+              <mat-icon>map</mat-icon>
+              <p>No hay ubicaciones cargadas</p>
+              <p class="hint">Selecciona una capa del menú para comenzar</p>
+            </div>
+
+            <div *ngIf="featuresList.length > 0" class="features-list">
+              <div
+                *ngFor="let featureItem of featuresList; let i = index"
+                class="feature-item"
+                (click)="locateOnMap(featureItem)">
+                <div class="feature-icon">
+                  <img [src]="featureItem.icon" [alt]="featureItem.layerName">
+                </div>
+                <div class="feature-info">
+                  <div class="feature-name">{{ getFeatureName(featureItem.feature) }}</div>
+                  <div class="feature-layer">{{ featureItem.layerName }}</div>
+                </div>
+                <mat-icon class="locate-icon">location_on</mat-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mapa -->
+        <div class="map-container">
+          <div id="geojson-map" class="map"></div>
+        </div>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
+

@@ -285,3 +285,20 @@
   }
 }
 
+/* Estilos para iconos de capas GeoJSON */
+.layer-icon-small {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.categoria-button-geojson {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 50%, #e65100 100%) !important;
+  color: #fff !important;
+}
+
+.categoria-button-geojson:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #e65100 50%, #bf360c 100%) !important;
+}
+
