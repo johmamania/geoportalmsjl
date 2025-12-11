@@ -16,6 +16,7 @@ export const routes: Routes = [
   },
 
   // Rutas de administración (sin layout)
+  {   path: 'admin-map',    component: AdminComponent,   canActivate: [adminGuard]  },
   {
     path: 'admin',
     children: [

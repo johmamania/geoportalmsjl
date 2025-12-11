@@ -20,24 +20,24 @@ interface ContactoInfo {
 })
 export class ContactanosComponent {
   contactoForm: FormGroup;
-  
+
   contactos: ContactoInfo[] = [
     {
       icon: 'location_on',
       titulo: 'Dirección',
-      contenido: 'Av. Próceres de la Independencia 1941, San Juan de Lurigancho, Lima, Perú',
+      contenido: 'Jr. Los Amautas 180, San Juan de Lurigancho, Lima, Perú',
       accion: 'Ver en mapa'
     },
     {
       icon: 'phone',
       titulo: 'Teléfono',
-      contenido: '+51 (01) 317-1717',
+      contenido: '+51 000 000 000',
       accion: 'Llamar ahora'
     },
     {
       icon: 'email',
       titulo: 'Correo Electrónico',
-      contenido: 'contacto@munislj.gob.pe',
+      contenido: 'contacto@pruebas.com.pe',
       accion: 'Enviar email'
     },
     {

@@ -15,9 +15,11 @@
 
 /* Header Section */
 .header-section {
-  text-align: center;
-  margin-bottom: 50px;
-  padding: 30px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3d6bb3 100%);
   border-radius: 16px;
   color: white;
@@ -27,10 +29,9 @@
 .main-title {
   font-size: 48px;
   font-weight: 700;
-  margin: 0 0 15px 0;
+  margin: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 15px;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
@@ -46,6 +47,7 @@
   margin: 0;
   opacity: 0.9;
   font-weight: 300;
+  white-space: nowrap;
 }
 
 /* Grid Layout */
@@ -221,6 +223,11 @@ mat-form-field {
     padding: 20px 15px;
   }
 
+  .header-section {
+    gap: 15px;
+    padding: 12px 15px;
+  }
+
   .main-title {
     font-size: 32px;
   }
@@ -232,7 +239,7 @@ mat-form-field {
   }
 
   .subtitle {
-    font-size: 16px;
+    display: none;
   }
 
   .section-title {
@@ -255,6 +262,11 @@ mat-form-field {
     padding: 15px 10px;
   }
 
+  .header-section {
+    gap: 10px;
+    padding: 12px 10px;
+  }
+
   .main-title {
     font-size: 28px;
   }
@@ -266,7 +278,7 @@ mat-form-field {
   }
 
   .subtitle {
-    font-size: 14px;
+    display: none;
   }
 
   .section-title {

@@ -12,105 +12,82 @@
       <!-- Tab 1: Administración de Ubicación -->
       <mat-tab label="Administración de Ubicación">
         <ng-template matTabContent>
-    <div class="toolbar-actions">
-      <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Buscar por nombre, categoría o descripción</mat-label>
-        <input matInput
-               [(ngModel)]="searchTerm"
-               (ngModelChange)="applyFilter()"
-               placeholder="Buscar...">
-        <mat-icon matPrefix>search</mat-icon>
-        <button mat-icon-button matSuffix
-                *ngIf="searchTerm"
-                (click)="clearSearch()"
-                matTooltip="Limpiar búsqueda">
-          <mat-icon>clear</mat-icon>
-        </button>
-      </mat-form-field>
+          <div class="geojson-editor-container">
+            <!-- Lista de tipos de ubicación (lado izquierdo) -->
+            <div class="layers-list">
+              <h3>Tipos de Ubicación</h3>
+              <mat-list>
+                <mat-list-item
+                  *ngFor="let layer of geojsonLayers"
+                  [class.selected]="selectedLayer()?.id === layer.id"
+                  (click)="selectLayer(layer)"
+                  class="layer-item">
+                  <img matListItemAvatar [src]="layer.icon" [alt]="layer.name" class="layer-icon">
+                  <div matListItemTitle>{{ layer.name }}</div>
+                  <div matListItemLine>{{ layer.file }}</div>
+                </mat-list-item>
+              </mat-list>
+            </div>
 
-      <button mat-raised-button color="primary" (click)="openAddDialog()">
-        <mat-icon>add</mat-icon>
-        Agregar Punto
-      </button>
-    </div>
+            <!-- Mapa y controles (lado derecho) -->
+            <div class="map-editor-section">
+              <div class="editor-header" *ngIf="selectedLayer()">
+                <div class="header-left">
+                  <h3>{{ selectedLayer()?.name }}</h3>
+                  <div class="layer-info">
+                    <div class="info-item">
+                      <mat-icon class="info-icon">description</mat-icon>
+                      <span><strong>Archivo:</strong> {{ selectedLayer()?.file }}</span>
+                    </div>
+                    <div class="info-item">
+                      <mat-icon class="info-icon">location_on</mat-icon>
+                      <span><strong>Ubicaciones:</strong> {{ featureCount() }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="header-buttons">
+                  <button
+                    mat-raised-button
+                    color="accent"
+                    (click)="toggleAddMode()"
+                    [disabled]="isSavingGeojson() || !selectedLayer()"
+                    [class.active]="isAddMode()">
+                    <mat-icon>add_location</mat-icon>
+                    Nuevo
+                  </button>
+                  <button
+                    mat-raised-button
+                    color="primary"
+                    (click)="saveGeojson()"
+                    [disabled]="isSavingGeojson() || !selectedLayer()">
+                    <mat-icon>save</mat-icon>
+                    Actualizar GeoJSON
+                  </button>
+                </div>
+              </div>
+              <div class="map-container" id="geojson-editor-map"></div>
+              <!-- Popup para opciones de feature -->
+              <div id="geojson-feature-popup" class="feature-popup" style="display: none;">
+                <div class="popup-header">
+                  <h4>Opciones de Ubicación</h4>
+                  <button mat-icon-button (click)="closeFeaturePopup()" class="close-btn">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+                <div class="popup-content">
+                  <button mat-raised-button color="warn" (click)="deleteSelectedFeature()" class="action-btn">
+                    <mat-icon>delete</mat-icon>
+                    Eliminar
+                  </button>
+                  <button mat-raised-button color="primary" (click)="enableMoveMode()" class="action-btn">
+                    <mat-icon>open_with</mat-icon>
+                    Cambiar Ubicación
+                  </button>
+                </div>
+              </div>
 
-    <div class="table-container">
-      <table mat-table [dataSource]="dataSource" class="points-table">
-        <!-- Columna Nombre -->
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Nombre</th>
-          <td mat-cell *matCellDef="let point">{{ point.name }}</td>
-        </ng-container>
-
-        <!-- Columna Descripción -->
-        <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Descripción</th>
-          <td mat-cell *matCellDef="let point">
-            {{ point.description || '-' }}
-          </td>
-        </ng-container>
-
-        <!-- Columna Latitud -->
-        <ng-container matColumnDef="latitude">
-          <th mat-header-cell *matHeaderCellDef>Latitud</th>
-          <td mat-cell *matCellDef="let point">{{ point.latitude }}</td>
-        </ng-container>
-
-        <!-- Columna Longitud -->
-        <ng-container matColumnDef="longitude">
-          <th mat-header-cell *matHeaderCellDef>Longitud</th>
-          <td mat-cell *matCellDef="let point">{{ point.longitude }}</td>
-        </ng-container>
-
-        <!-- Columna Categoría -->
-        <ng-container matColumnDef="category">
-          <th mat-header-cell *matHeaderCellDef>Categoría</th>
-          <td mat-cell *matCellDef="let point">
-            <span *ngIf="point.category === '1'">Punto de Reunión</span>
-            <span *ngIf="point.category === '2'">Punto de Referencia</span>
-            <span *ngIf="point.category === '3'">Punto de Interés</span>
-            <span *ngIf="point.category !== '1' && point.category !== '2' && point.category !== '3'">-</span>
-          </td>
-        </ng-container>
-
-        <!-- Columna Fecha -->
-        <ng-container matColumnDef="created_at">
-          <th mat-header-cell *matHeaderCellDef>Fecha Creación</th>
-          <td mat-cell *matCellDef="let point">{{ formatDate(point.created_at) }}</td>
-        </ng-container>
-
-        <!-- Columna Acciones -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let point">
-            <button mat-icon-button color="primary" (click)="openEditDialog(point)" matTooltip="Editar">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="deletePoint(point)" matTooltip="Eliminar">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-            No hay puntos registrados
-          </td>
-        </tr>
-      </table>
-
-      <mat-paginator
-        [length]="totalItems()"
-        [pageSize]="pageSize()"
-        [pageIndex]="pageIndex()"
-        [pageSizeOptions]="pageSizeOptions"
-        [showFirstLastButtons]="true"
-        (page)="onPageChange($event)">
-      </mat-paginator>
-    </div>
+            </div>
+          </div>
         </ng-template>
       </mat-tab>
 

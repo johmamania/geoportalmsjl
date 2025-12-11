@@ -43,6 +43,11 @@ export class MenuService {
         icon: 'library_books'
       },
       {
+        label: 'CURSOS',
+        route: '/cursos',
+        icon: 'school'
+      },
+      {
         label: 'CONTACTANOS',
         route: '/contactanos',
         icon: 'contact_mail'

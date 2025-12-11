@@ -10,6 +10,12 @@ export const environment = {
   supabase: {
     url: '',
     anonKey: ''
+  },
+  // Configuración de OpenRouteService
+  openRouteService: {
+    apiKey: '', // Se configurará desde variables de entorno en Vercel
+    baseUrl: 'https://api.openrouteservice.org/v2/directions',
+    useOpenRouteService: true // Cambiar a false cuando se agoten las 2000 peticiones
   }
 };
 

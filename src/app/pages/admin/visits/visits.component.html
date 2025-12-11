@@ -1,0 +1,92 @@
+<div class="visits-container">
+  <div class="header-section">
+    <h2>
+      <mat-icon>analytics</mat-icon>
+      Estadísticas de Visitas
+    </h2>
+    <button mat-raised-button color="primary" (click)="cargarEstadisticas()" [disabled]="cargando">
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+  </div>
+
+  <div class="loading-container" *ngIf="cargando">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando estadísticas...</p>
+  </div>
+
+  <div class="error-container" *ngIf="error && !cargando">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="cargarEstadisticas()">
+      Reintentar
+    </button>
+  </div>
+
+  <div class="stats-grid" *ngIf="!cargando && !error && estadisticas.length > 0">
+    <mat-card class="stat-card" *ngFor="let stat of estadisticas">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon [class]="getIconClass(stat.nombre)">{{ getIcon(stat.nombre) }}</mat-icon>
+          {{ getNombreDisplay(stat.nombre) }}
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-value">
+          <span class="number">{{ stat.contador | number }}</span>
+          <span class="label">visitas</span>
+        </div>
+        <div class="stat-description">
+          {{ getDescripcion(stat.nombre) }}
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="empty-container" *ngIf="!cargando && !error && estadisticas.length === 0">
+    <mat-icon>info</mat-icon>
+    <p>No hay estadísticas disponibles</p>
+  </div>
+
+  <!-- Tabla de estadísticas -->
+  <div class="table-container" *ngIf="!cargando && !error && estadisticas.length > 0">
+    <table mat-table [dataSource]="dataSource" class="stats-table">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-icon>label</mat-icon>
+          Tipo de Visita
+        </th>
+        <td mat-cell *matCellDef="let stat">
+          <div class="cell-content">
+            <mat-icon [class]="getIconClass(stat.nombre)">{{ getIcon(stat.nombre) }}</mat-icon>
+            <span>{{ getNombreDisplay(stat.nombre) }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="contador">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-icon>numbers</mat-icon>
+          Cantidad
+        </th>
+        <td mat-cell *matCellDef="let stat">
+          <span class="contador-badge">{{ stat.contador | number }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="descripcion">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-icon>description</mat-icon>
+          Descripción
+        </th>
+        <td mat-cell *matCellDef="let stat">
+          {{ getDescripcion(stat.nombre) }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>
+

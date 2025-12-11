@@ -1,9 +1,204 @@
 .admin-container {
-  margin-top: 76px;
+
   display: flex;
   flex-direction: column;
-  height: 85vh;
+  height: 100vh;
+  max-height: 120vh;
+  overflow-y: auto;
   background: #f5f7fa;
+}
+
+/* GeoJSON Editor Styles */
+.geojson-editor-container {
+  display: flex;
+  height: calc(85vh - 100px);
+  gap: 16px;
+  padding: 16px;
+}
+
+.layers-list {
+  width: 280px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+}
+
+.layers-list h3 {
+  margin: 0 0 20px 0;
+  color: #1e3c72;
+  font-size: 18px;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.layers-list mat-list-item {
+  cursor: pointer;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+}
+
+.layers-list mat-list-item:hover {
+  background-color: #f5f7fa;
+  border-color: #e0e0e0;
+  transform: translateX(4px);
+}
+
+.layers-list mat-list-item.selected {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid #2196f3;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+  font-weight: 600;
+}
+
+.layer-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.map-editor-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  gap: 24px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+}
+
+.editor-header h3 {
+  margin: 0;
+  color: #1e3c72;
+  font-size: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.layer-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+.info-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #1e3c72;
+}
+
+.info-item strong {
+  color: #333;
+  margin-right: 4px;
+}
+
+.map-container {
+  flex: 1;
+  width: 100%;
+  min-height: 420px;
+}
+
+.editor-info {
+  padding: 12px 16px;
+  border-top: 1px solid #e0e0e0;
+  background: #f5f7fa;
+  font-size: 14px;
+  color: #666;
+}
+
+.editor-info p {
+  margin: 4px 0;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.header-buttons button.active {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+/* Feature Popup Styles */
+.feature-popup {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.popup-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.popup-header .close-btn {
+  color: white;
+}
+
+.popup-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .content-container {

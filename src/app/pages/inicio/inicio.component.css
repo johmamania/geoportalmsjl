@@ -1,14 +1,14 @@
 .inicio-container {
   position: relative;
   min-height: calc(100vh - 90px - 80px);
-  padding: 20px;
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ============================================
-   VIDEO DE FONDO (solo en inicio)
+   VIDEO DE FONDO
    ============================================ */
 .background-video {
   position: fixed;
@@ -19,12 +19,23 @@
   width: auto;
   height: auto;
   transform: translate(-50%, -50%);
-  z-index: -1;
+  z-index: 0;
   object-fit: cover;
-  background: #000;
+  background: #1a237e;
 }
 
-/* Asegurar que el video cubra toda la pantalla en diferentes tamaños */
+/* Overlay para mejor legibilidad */
+.video-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(6, 7, 56, 0.7) 0%, rgba(26, 35, 126, 0.6) 100%);
+  z-index: 1;
+}
+
+/* Asegurar que el video cubra toda la pantalla */
 @media (min-aspect-ratio: 16/9) {
   .background-video {
     width: 100%;
@@ -39,61 +50,146 @@
   }
 }
 
-/* Estilos para el título */
-.title {
-  position: absolute;
-  top: 10px;
-  left: 0;
-  z-index: 1000;
+/* Ocultar video en móviles para mejor rendimiento */
+@media (max-width: 768px) {
+  .background-video {
+    display: none;
+  }
+
+  .video-overlay {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+  }
+}
+
+/* Fondo alternativo si el video no está disponible */
+.background-video[style*="display: none"] ~ .video-overlay {
+  background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 15px;
+  gap: 30px;
+}
+
+/* ============================================
+   HEADER SECTION
+   ============================================ */
+.header-section {
+  width: 100%;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .title h1 {
-  font-size: 45px;
-  font-weight: bold;
-  color: #000000;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 0, 0, 0.3);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3);
   margin: 0;
+  letter-spacing: 2px;
+  line-height: 1.2;
 }
 
-.title p {
-  font-size: 20px;
+.title h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #ffd54f;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.title .subtitle {
+  font-size: 1.1rem;
   font-weight: 400;
-  color: #000000;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
   margin: 10px 0 0 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Estilos para categorías */
+/* ============================================
+   CATEGORÍAS SECTION
+   ============================================ */
 .categorias-container {
-  position: absolute;
-  top: 200px;
-  left: 20px;
-  z-index: 999;
-  padding: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0;
 }
 
 .categorias-content {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+  background: transparent;
+  backdrop-filter: none;
+  border-radius: 0;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  min-width: 280px;
+  box-shadow: none;
+  width: 100%;
+  max-width: 330px;
+}
+
+/* En PC/Computadora: posicionar a 23px del borde izquierdo - obligatorio */
+@media (min-width: 769px) {
+  .categorias-container {
+    margin-left: 10px !important;
+    position: relative;
+  }
+}
+
+/* Asegurar que se mantenga en pantallas grandes de escritorio */
+@media (min-width: 1024px) {
+  .categorias-container {
+    margin-left: 10px !important;
+  }
+}
+
+@media (min-width: 1920px) {
+  .categorias-container {
+    margin-left: 10px !important;
+  }
+}
+
+.categorias-header {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .categorias-title {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #060738;
-  margin: 0 0 20px 0;
-  text-align: center;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #4A90E2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.title-icon {
+  color: #4A90E2;
+  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .categorias-buttons {
@@ -103,202 +199,325 @@
   width: 100%;
 }
 
+/* ============================================
+   BOTONES DE CATEGORÍAS
+   ============================================ */
 .categoria-button {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: 500;
+  padding: 16px 20px;
+  font-size: 1rem;
+  font-weight: 600;
   text-transform: capitalize;
   transition: all 0.3s ease;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: none;
+  border-right: 3px solid #ffffff;
+  min-height: 60px;
+  cursor: pointer;
 }
 
-.categoria-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
 }
 
-.categoria-button mat-icon {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
-  transition: transform 0.3s ease;
-  position: relative;
-  z-index: 1;
-}
-
-.categoria-button span {
-  position: relative;
-  z-index: 1;
-}
-
-.categoria-button:hover {
-  transform: translateX(5px) translateY(-2px);
-  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.5);
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 50%, #2E6DA4 100%);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.categoria-button:hover::before {
-  left: 100%;
-}
-
-.categoria-button:hover mat-icon {
-  transform: translateX(3px) scale(1.15);
-}
-
-.categoria-button:active {
-  transform: translateX(2px) translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.categoria-button-all {
-  background: linear-gradient(135deg, #d32f2f 0%, #e53935 50%, #f44336 100%) !important;
-  font-weight: 600;
-  color: #fff !important;
-  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.categoria-button-all::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.categoria-button-all:hover {
-  background: linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #d32f2f 100%) !important;
-  transform: translateX(5px) translateY(-2px);
-  box-shadow: 0 8px 20px rgba(211, 47, 47, 0.5);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.categoria-button-all:hover::before {
-  left: 100%;
-}
-
-.categoria-button-all:hover mat-icon {
-  transform: translateX(3px) scale(1.15);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .inicio-container {
-    min-height: calc(100vh - 90px);
-    padding: 10px;
-  }
-
-  .title {
-    top: 5px;
-    left: 0;
-    padding: 10px;
-  }
-
-  .title h1 {
-    font-size: 28px;
-  }
-
-  .title p {
-    font-size: 14px;
-  }
-
-  .categorias-container {
-    top: 120px;
-    left: 5px;
-    right: 5px;
-    padding: 10px;
-    position: relative;
-  }
-
-  .categorias-content {
-    min-width: auto;
-    width: 100%;
-    padding: 15px;
-  }
-
-  .categorias-title {
-    font-size: 18px;
-  }
-
-  .categoria-button {
-    padding: 10px 15px;
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .inicio-container {
-    padding: 5px;
-  }
-
-  .title h1 {
-    font-size: 24px;
-  }
-
-  .title p {
-    font-size: 12px;
-  }
-
-  .categorias-container {
-    top: 100px;
-    left: 0;
-    right: 0;
-    padding: 5px;
-  }
-
-  .categorias-content {
-    padding: 12px;
-  }
-
-  .categorias-title {
-    font-size: 16px;
-  }
-
-  .categoria-button {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  .categoria-button mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-  }
-}
-
-/* Estilos para iconos de capas GeoJSON */
-.layer-icon-small {
-  width: 24px;
-  height: 24px;
+.layer-icon {
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
-.categoria-button-geojson {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 50%, #e65100 100%) !important;
-  color: #fff !important;
+.button-text {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  width: 0;
+  transition: all 0.3s ease;
 }
 
-.categoria-button-geojson:hover {
-  background: linear-gradient(135deg, #f57c00 0%, #e65100 50%, #bf360c 100%) !important;
+/* En PC: solo mostrar iconos, texto aparece en hover */
+@media (min-width: 769px) {
+  .categoria-button {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    justify-content: center;
+    padding: 16px 8px;
+    transition: all 0.3s ease;
+  }
+
+  .button-content {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .button-text {
+    opacity: 0;
+    width: 0;
+    margin-left: 0;
+    overflow: hidden;
+  }
+
+  .categoria-button:hover {
+    width: 100%;
+    min-width: auto;
+    max-width: 100%;
+    justify-content: flex-start;
+    padding: 16px 20px;
+  }
+
+  .categoria-button:hover .button-content {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .categoria-button:hover .button-text {
+    opacity: 1;
+    width: auto;
+    margin-left: 0;
+  }
+}
+
+/* Botón 0 - Límite SJL - Verde */
+.categoria-button-0 {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 50%, #2E7D32 100%) !important;
+  color: #fff !important;
+  border-right-color: #ffffff !important;
+}
+
+.categoria-button-0:hover {
+  background: linear-gradient(135deg, #388E3C 0%, #2E7D32 50%, #1B5E20 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+  border-right-color: #ffffff !important;
+}
+
+
+.categoria-button-0:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* Botón 1 - ACV Baja - Azul */
+.categoria-button-1 {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #1565C0 100%) !important;
+  color: #fff !important;
+  border-right-color: #ffffff !important;
+}
+
+.categoria-button-1:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 50%, #0D47A1 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+  border-right-color: #ffffff !important;
+}
+
+
+.categoria-button-1:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+/* Botón 2 - Abastecimiento de Agua - Cian */
+.categoria-button-2 {
+  background: linear-gradient(135deg, #00BCD4 0%, #0097A7 50%, #00838F 100%) !important;
+  color: #fff !important;
+  border-right-color: #ffffff !important;
+}
+
+.categoria-button-2:hover {
+  background: linear-gradient(135deg, #0097A7 0%, #00838F 50%, #006064 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 188, 212, 0.4);
+  border-right-color: #ffffff !important;
+}
+
+
+.categoria-button-2:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+}
+
+/* Botón 3 - Albergues - Naranja */
+.categoria-button-3 {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 50%, #E65100 100%) !important;
+  color: #fff !important;
+  border-right-color: #ffffff !important;
+}
+
+.categoria-button-3:hover {
+  background: linear-gradient(135deg, #F57C00 0%, #E65100 50%, #BF360C 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+  border-right-color: #ffffff !important;
+}
+
+
+.categoria-button-3:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+/* Botón 4 - Hidrantes - Rojo */
+.categoria-button-4 {
+  background: linear-gradient(135deg, #F44336 0%, #D32F2F 50%, #C62828 100%) !important;
+  color: #fff !important;
+  border-right-color: #ffffff !important;
+}
+
+.categoria-button-4:hover {
+  background: linear-gradient(135deg, #D32F2F 0%, #C62828 50%, #B71C1C 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
+  border-right-color: #ffffff !important;
+}
+
+
+.categoria-button-4:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+/* Botón 5 - Puntos de Reunión - Púrpura */
+.categoria-button-5 {
+  background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 50%, #6A1B9A 100%) !important;
+  color: #fff !important;
+  border-right-color: #ffffff !important;
+}
+
+.categoria-button-5:hover {
+  background: linear-gradient(135deg, #7B1FA2 0%, #6A1B9A 50%, #4A148C 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
+  border-right-color: #ffffff !important;
+}
+
+
+.categoria-button-5:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+@media (max-width: 768px) {
+  .categorias-content {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .categorias-title {
+    font-size: 1.3rem;
+  }
+
+  .title-icon {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .categoria-button {
+    padding: 14px 18px;
+    min-height: 56px;
+    justify-content: flex-start;
+  }
+
+  .button-content {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .button-text {
+    opacity: 1 !important;
+    width: auto !important;
+  }
+
+  .layer-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MÓVIL
+   ============================================ */
+@media (max-width: 480px) {
+  .categorias-content {
+    padding: 5px;
+    max-width: 30px;
+    width: 30px;
+  }
+
+  .categorias-header {
+    margin-bottom: 10px;
+  }
+
+  .categorias-title {
+    font-size: 0.7rem;
+  }
+
+  .title-icon {
+    font-size: 0.8rem;
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .categorias-buttons {
+    gap: 5px;
+  }
+
+  .categoria-button {
+    padding: 5px;
+    min-height: 30px;
+    justify-content: center;
+    border-radius: 6px;
+  }
+
+  .button-content {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .layer-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .button-text {
+    display: none;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MÓVIL PEQUEÑO
+   ============================================ */
+@media (max-width: 360px) {
+  .categorias-content {
+    padding: 5px;
+    max-width: 30px;
+    width: 30px;
+  }
+
+  .categoria-button {
+    padding: 5px;
+    min-height: 30px;
+  }
+
+  .layer-icon {
+    width: 20px;
+    height: 20px;
+  }
 }
 

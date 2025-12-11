@@ -30,31 +30,29 @@
       <!-- Toolbar superior -->
       <div class="toolbar">
         <div class="toolbar-left">
-          <button mat-icon-button (click)="toggleMenu()" matTooltip="Mostrar/Ocultar Menú">
+          <button mat-icon-button (click)="toggleMenu()" matTooltip="Mostrar/Ocultar Menú" class="menu-toggle-btn">
             <mat-icon>menu</mat-icon>
           </button>
           <h1 class="toolbar-title"> </h1>
         </div>
         <div class="toolbar-right">
-          <!-- Menú de tipos de mapa -->
-          <mat-menu #mapTypeMenu="matMenu">
-            <button mat-menu-item *ngFor="let mapType of mapTypes"
-                    (click)="changeMapType(mapType.id)"
-                    [class.selected]="selectedMapType() === mapType.id">
-              <mat-icon>{{ mapType.icon }}</mat-icon>
-              <span>{{ mapType.name }}</span>
-              <mat-icon *ngIf="selectedMapType() === mapType.id" class="check-icon">check</mat-icon>
-            </button>
-          </mat-menu>
-
-          <!-- Botón de tipos de mapa -->
-          <button mat-raised-button
-                  [matMenuTriggerFor]="mapTypeMenu"
-                  class="map-type-button">
-            <mat-icon>{{ getCurrentMapTypeIcon() }}</mat-icon>
-            <span class="map-type-text">{{ getCurrentMapTypeName() }}</span>
-            <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
-          </button>
+          <!-- Contenedor unificado para PC y móvil -->
+          <div class="map-type-container">
+            <div class="map-type-name">
+              <mat-icon class="map-type-icon">{{ getCurrentMapTypeIcon() }}</mat-icon>
+              <span class="map-type-text">{{ getCurrentMapTypeName() }}</span>
+            </div>
+            <div class="map-type-icons">
+              <button mat-icon-button
+                      *ngFor="let mapType of mapTypes"
+                      (click)="changeMapType(mapType.id)"
+                      [class.active]="selectedMapType() === mapType.id"
+                      [matTooltip]="mapType.name"
+                      class="map-type-icon-btn">
+                <mat-icon>{{ mapType.icon }}</mat-icon>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

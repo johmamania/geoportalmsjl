@@ -1,0 +1,67 @@
+<div class="cursos-container">
+  <div class="cursos-content">
+    <div class="header-section">
+      <h1 class="main-title">
+        <mat-icon class="title-icon">school</mat-icon>
+        Cursos
+      </h1>
+      <p class="subtitle">Capacitaciones y cursos disponibles para la comunidad</p>
+    </div>
+
+    <div class="cursos-grid">
+      <mat-card *ngFor="let curso of cursos" class="curso-card">
+        <mat-card-header>
+          <div class="card-header-content">
+            <div class="categoria-badge" [style.background-color]="getCategoriaColor(curso.categoria)">
+              {{ curso.categoria }}
+            </div>
+            <div class="nivel-badge" [ngClass]="'nivel-' + curso.nivel.toLowerCase()">
+              {{ curso.nivel }}
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <h2 class="card-title">{{ curso.titulo }}</h2>
+          <p class="card-description">{{ curso.descripcion }}</p>
+
+          <div class="curso-info">
+            <div class="info-item" *ngIf="curso.certificado">
+              <mat-icon class="info-icon">verified</mat-icon>
+              <span>Certificado</span>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">schedule</mat-icon>
+              <span>{{ curso.duracion }}</span>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">person</mat-icon>
+              <span>{{ curso.instructor }}</span>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">calendar_today</mat-icon>
+              <span>{{ curso.fechaInicio }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <div class="card-footer">
+            <div class="precio-info">
+              <span *ngIf="curso.precio === 0" class="precio-gratis">Gratis</span>
+              <span *ngIf="curso.precio && curso.precio > 0" class="precio">
+                S/ {{ curso.precio }}
+              </span>
+            </div>
+            <button mat-raised-button color="primary" class="inscribirse-btn">
+              <mat-icon>how_to_reg</mat-icon>
+              Inscribirse
+            </button>
+          </div>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>
+

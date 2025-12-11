@@ -20,6 +20,8 @@ import Overlay from 'ol/Overlay';
 import LineString from 'ol/geom/LineString';
 import { RoutingService } from '../../services/routing.service';
 import { GeojsonLayersService, GeoJsonLayer } from '../../services/geojson-layers.service';
+import { EstadisticasService } from '../../services/estadisticas.service';
+import { GeojsonService } from '../../services/geojson.service';
 
 interface GeoJsonFeature {
   type: string;
@@ -39,6 +41,7 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   private layers = new Map<string, VectorLayer<VectorSource>>();
   private popupOverlay?: Overlay;
   private selectedFeature?: Feature;
+  private selectedLocationMarker?: Feature;
   private currentLocationMarker?: Feature;
   private routeLayer?: VectorLayer<VectorSource>;
   private currentLocation: { latitude: number; longitude: number } | null = null;
@@ -68,13 +71,25 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     private routingService: RoutingService,
     private geojsonLayersService: GeojsonLayersService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private estadisticasService: EstadisticasService,
+    private geojsonService: GeojsonService
   ) {
     // Obtener las capas del servicio
     this.geoJsonLayers = this.geojsonLayersService.getLayers();
   }
 
   ngOnInit(): void {
+    // Incrementar visitas a mapas cuando se carga el geoportal
+    this.estadisticasService.incrementarVisitasMapas().subscribe({
+      next: () => {
+        console.log('✅ Visita a mapas registrada');
+      },
+      error: (err) => {
+        console.error('❌ Error al registrar visita a mapas:', err);
+      }
+    });
+
     // Obtener el parámetro de la ruta para activar una capa específica
     this.route.params.subscribe(params => {
       const layerId = params['layerId'];
@@ -196,7 +211,9 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         animation: {
           duration: 250
         }
-      }
+      },
+      offset: [15, -15], // Offset inicial: 15px a la derecha, 15px arriba
+      positioning: 'bottom-left'
     });
     this.map.addOverlay(this.popupOverlay);
 
@@ -210,14 +227,15 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     // Guardar referencia a la capa de marcadores
     (this.map as any).markerLayer = markerLayer;
 
-    // Crear capa de rutas
+    // Crear capa de rutas con color azul
     this.routeLayer = new VectorLayer({
       source: new VectorSource(),
       zIndex: 999,
       style: new Style({
         stroke: new Stroke({
-          color: '#3a9b37',
-          width: 5
+          color: '#4A90E2', // Azul
+          width: 6,
+          lineDash: []
         })
       })
     });
@@ -228,17 +246,39 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
 
     // Interacción de clic en el mapa
     this.map.on('click', (event) => {
-      const feature = this.map.forEachFeatureAtPixel(
+      // Buscar features en el pixel, pero filtrar marcadores
+      const features: Feature[] = [];
+
+      this.map.forEachFeatureAtPixel(
         event.pixel,
-        (feature) => feature
-      );
-      if (feature && feature instanceof Feature) {
-        // No mostrar popup si es el marcador de ubicación actual
-        const properties = feature.getProperties();
-        if (properties['name'] === 'Mi Ubicación') {
-          return;
+        (feature) => {
+          if (feature instanceof Feature) {
+            const properties = feature.getProperties();
+            // Ignorar marcadores, solo tomar features de las capas GeoJSON
+            if (properties['name'] !== 'Mi Ubicación' && properties['name'] !== 'Ubicación Seleccionada') {
+              features.push(feature);
+            }
+          }
+        },
+        {
+          layerFilter: (layer) => {
+            // Solo buscar en capas GeoJSON, no en la capa de marcadores
+            return layer !== (this.map as any).markerLayer;
+          }
         }
-        this.showPointOptionsMenu(feature, event.coordinate);
+      );
+
+      // Tomar el primer feature encontrado (el más cercano)
+      if (features.length > 0) {
+        const clickedFeature = features[0];
+        // Asegurar que el popup esté visible antes de mostrarlo
+        const popupEl = this.popupOverlay?.getElement();
+        if (popupEl) {
+          popupEl.style.display = 'block';
+          popupEl.style.visibility = 'visible';
+          popupEl.style.opacity = '1';
+        }
+        this.showPointOptionsMenu(clickedFeature, event.coordinate);
       }
     });
 
@@ -277,10 +317,8 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private loadGeoJsonLayer(layerConfig: GeoJsonLayer): void {
-    const url = `assets/datos/${layerConfig.file}`;
-
-    // Usar responseType: 'text' para tener control total sobre el parsing
-    this.http.get(url, { responseType: 'text' }).subscribe({
+    // Cargar desde Supabase Storage usando el nuevo servicio
+    this.geojsonService.loadGeojsonFile(layerConfig.file).subscribe({
       next: (responseText: string) => {
         // Validar y parsear la respuesta
         let geoJson: any;
@@ -473,18 +511,10 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         }
       },
       error: (error) => {
-        console.error(`Error al cargar ${layerConfig.file}:`, error);
-        // Intentar cargar con ruta absoluta como fallback
-        if (error.status === 404 || error.status === 0) {
-          console.warn(`Archivo no encontrado en ${url}, intentando con ruta alternativa...`);
-          // No hacer nada más, el archivo simplemente no se cargará
-        } else {
-          console.error(`Error HTTP al cargar ${layerConfig.file}:`, {
-            status: error.status,
-            statusText: error.statusText,
-            message: error.message,
-            url: url
-          });
+        console.error(`Error al cargar ${layerConfig.file} desde Supabase Storage:`, error);
+        // El archivo no se cargará si hay un error
+        if (error.message) {
+          console.error(`Detalles del error: ${error.message}`);
         }
       }
     });
@@ -608,6 +638,11 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     const popupElement = this.popupOverlay.getElement();
     if (!popupElement) return;
 
+    // Asegurar que el popup sea visible
+    popupElement.style.display = 'block';
+    popupElement.style.visibility = 'visible';
+    popupElement.style.opacity = '1';
+
     const properties = feature.getProperties();
     const name = properties['Name'] || properties['name'] || 'Sin nombre';
 
@@ -616,7 +651,7 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     popupElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
     popupElement.style.minWidth = '250px';
     popupElement.style.maxWidth = '350px';
-    popupElement.style.position = 'relative';
+    popupElement.style.position = 'absolute';
 
     const content = document.createElement('div');
     content.style.padding = '16px';
@@ -683,8 +718,19 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
 
     popupElement.appendChild(closer);
     popupElement.appendChild(content);
+
+    // Asegurar que el popup sea visible
+    popupElement.style.display = 'block';
+    popupElement.style.visibility = 'visible';
+    popupElement.style.opacity = '1';
+
+    // Configurar offset para el popup inicial
+    this.popupOverlay.setOffset([15, -15]);
     this.popupOverlay.setPosition(coordinate);
     this.selectedFeature = feature;
+
+    // Agregar marcador celeste cuando se selecciona una ubicación
+    this.addSelectedLocationMarker(feature);
 
     // Event listeners para los botones
     setTimeout(() => {
@@ -819,13 +865,30 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     popupElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
     popupElement.style.minWidth = '280px';
     popupElement.style.maxWidth = '400px';
-    popupElement.style.position = 'relative';
+    popupElement.style.position = 'absolute';
+    popupElement.style.zIndex = '2000';
+
+    // Crear header arrastrable con estilo mejorado
+    const header = document.createElement('div');
+    header.className = 'ol-popup-header';
+    header.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 20px;">🗺️</span>
+        <div>
+          <div style="font-size: 16px; font-weight: 600; line-height: 1.2;">Cómo Llegar</div>
+          <div style="font-size: 13px; opacity: 0.9; font-weight: 400;">${name}</div>
+        </div>
+      </div>
+    `;
+    header.style.cursor = 'move';
+
+    // Funcionalidad de arrastre
+    this.makeDraggable(popupElement, header);
 
     const content = document.createElement('div');
     content.style.padding = '16px';
-    content.style.paddingTop = '40px';
+    content.style.paddingTop = '12px';
     content.innerHTML = `
-      <div style="font-weight: bold; font-size: 18px; margin-bottom: 16px; color: #1e3c72; text-align: center;">Cómo Llegar a ${name}</div>
       <div style="margin-bottom: 16px;">
         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Selecciona el medio de transporte:</label>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -840,29 +903,38 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
           </button>
         </div>
       </div>
-      <div id="route-info" style="padding: 12px; background: #f5f5f5; border-radius: 6px; margin-bottom: 12px; text-align: center; font-weight: 500; color: #333;">
-        Calculando ruta...
+      <div id="route-info" style="padding: 16px; background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; border-radius: 8px; margin-bottom: 12px; text-align: center; font-weight: 500;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span style="font-size: 20px;">⏳</span>
+          <span>Calculando ruta...</span>
+        </div>
       </div>
       <button id="btn-cerrar-ruta" style="width: 100%; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">
         Cerrar Ruta
       </button>
     `;
 
-    let closer = popupElement.querySelector('.ol-popup-closer') as HTMLAnchorElement;
+    // Limpiar contenido anterior
     popupElement.innerHTML = '';
 
-    if (!closer) {
-      closer = document.createElement('a');
-      closer.className = 'ol-popup-closer';
-      closer.href = '#';
-      closer.innerHTML = '×';
-      closer.addEventListener('click', (evt) => {
-        evt.preventDefault();
-        this.clearRoute();
-        this.popupOverlay?.setPosition(undefined);
-        return false;
-      });
-    }
+    // Crear botón de cerrar
+    const closer = document.createElement('a');
+    closer.className = 'ol-popup-closer';
+    closer.href = '#';
+    closer.innerHTML = '×';
+    closer.addEventListener('click', (evt) => {
+      evt.preventDefault();
+      // Solo ocultar el popup, mantener la ruta visible
+      const popupEl = this.popupOverlay?.getElement();
+      if (popupEl) {
+        popupEl.style.display = 'none';
+        popupEl.style.visibility = 'hidden';
+      }
+      // Resetear la posición del overlay para que pueda mostrarse de nuevo
+      this.popupOverlay?.setPosition(undefined);
+      // NO limpiar selectedFeature para mantener la referencia del feature original
+      return false;
+    });
 
     closer.style.position = 'absolute';
     closer.style.top = '8px';
@@ -880,10 +952,23 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     closer.style.textDecoration = 'none';
     closer.style.cursor = 'pointer';
     closer.style.transition = 'all 0.2s ease';
-    closer.style.zIndex = '1000';
+    closer.style.zIndex = '1001';
 
+    // Agregar elementos en el orden correcto
+    popupElement.appendChild(header);
     popupElement.appendChild(closer);
     popupElement.appendChild(content);
+
+    // Asegurar que el popup sea visible
+    popupElement.style.display = 'block';
+    popupElement.style.visibility = 'visible';
+    popupElement.style.opacity = '1';
+
+    // Configurar el offset del overlay para que aparezca a 15px del punto
+    // El offset se aplica en píxeles: [x, y] donde y negativo es arriba
+    this.popupOverlay.setOffset([15, -15]);
+
+    // Posicionar el popup en la coordenada de la ubicación seleccionada
     this.popupOverlay.setPosition(coordinate);
 
     // Event listeners para los botones de transporte
@@ -919,11 +1004,19 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         });
       });
 
-      // Botón cerrar ruta
+      // Botón cerrar ruta - elimina la ruta y el marcador
       const btnCerrarRuta = document.getElementById('btn-cerrar-ruta');
       if (btnCerrarRuta) {
         btnCerrarRuta.addEventListener('click', () => {
+          // Eliminar la ruta del mapa
           this.clearRoute();
+          // Eliminar el marcador de ubicación seleccionada
+          this.removeSelectedLocationMarker();
+          // Ocultar el popup
+          const popupEl = this.popupOverlay?.getElement();
+          if (popupEl) {
+            popupEl.style.display = 'none';
+          }
           this.popupOverlay?.setPosition(undefined);
         });
       }
@@ -989,10 +1082,11 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
           geometry: new LineString(coordinates)
         });
 
+        // Color azul para la ruta
         routeFeature.setStyle(new Style({
           stroke: new Stroke({
-            color: '#3a9b37',
-            width: 5,
+            color: '#4A90E2', // Azul
+            width: 6,
             lineDash: []
           })
         }));
@@ -1019,12 +1113,35 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         }
 
         const transportName = this.selectedTransportName();
+        const transportType = this.selectedTransportType();
+
+        // Icono según el tipo de transporte
+        let transportIcon = '🚶';
+        if (transportType === 'driving') {
+          transportIcon = '🚕';
+        } else if (transportType === 'cycling') {
+          transportIcon = '🚲';
+        }
 
         if (routeInfo) {
           routeInfo.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 4px;">${transportName}</div>
-            <div style="font-size: 14px;">Distancia: ${distanceText}</div>
-            <div style="font-size: 14px;">Tiempo estimado: ${durationText}</div>
+            <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+              <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; justify-content: center;">
+                <span style="font-size: 24px;">${transportIcon}</span>
+                <span>${transportName}</span>
+              </div>
+              <div style="display: flex; justify-content: space-around; gap: 12px; margin-top: 12px;">
+                <div style="text-align: center; flex: 1;">
+                  <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Distancia</div>
+                  <div style="font-size: 20px; font-weight: bold;">${distanceText}</div>
+                </div>
+                <div style="width: 1px; background: rgba(255,255,255,0.3);"></div>
+                <div style="text-align: center; flex: 1;">
+                  <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Tiempo</div>
+                  <div style="font-size: 20px; font-weight: bold;">${durationText}</div>
+                </div>
+              </div>
+            </div>
           `;
         }
 
@@ -1053,6 +1170,109 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     if (this.routeLayer) {
       this.routeLayer.getSource()?.clear();
     }
+  }
+
+  /**
+   * Agrega un marcador celeste en la ubicación seleccionada
+   */
+  private addSelectedLocationMarker(feature: Feature): void {
+    this.removeSelectedLocationMarker();
+
+    const geometry = feature.getGeometry();
+    if (!geometry || !(geometry instanceof Point)) {
+      return;
+    }
+
+    const markerLayer = (this.map as any).markerLayer as VectorLayer<VectorSource>;
+    if (!markerLayer) return;
+
+    const markerFeature = new Feature({
+      geometry: geometry.clone()
+    });
+
+    // Estilo del marcador celeste
+    markerFeature.setStyle(new Style({
+      image: new Icon({
+        src: 'data:image/svg+xml;base64,' + btoa(`
+          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="14" fill="#87CEEB" stroke="#4A90E2" stroke-width="2"/>
+            <circle cx="16" cy="16" r="6" fill="#FFFFFF"/>
+          </svg>
+        `),
+        scale: 1.2,
+        anchor: [0.5, 1]
+      })
+    }));
+
+    markerFeature.set('name', 'Ubicación Seleccionada');
+    this.selectedLocationMarker = markerFeature;
+    markerLayer.getSource()?.addFeature(markerFeature);
+  }
+
+  /**
+   * Remueve el marcador de ubicación seleccionada
+   */
+  private removeSelectedLocationMarker(): void {
+    if (this.selectedLocationMarker) {
+      const markerLayer = (this.map as any).markerLayer as VectorLayer<VectorSource>;
+      if (markerLayer) {
+        markerLayer.getSource()?.removeFeature(this.selectedLocationMarker);
+      }
+      this.selectedLocationMarker = undefined;
+    }
+  }
+
+  /**
+   * Hace el popup arrastrable
+   */
+  private makeDraggable(element: HTMLElement, dragHandle: HTMLElement): void {
+    let isDragging = false;
+    let currentX = 0;
+    let currentY = 0;
+    let initialX = 0;
+    let initialY = 0;
+
+    dragHandle.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Solo botón izquierdo
+
+      isDragging = true;
+      const rect = element.getBoundingClientRect();
+      initialX = e.clientX - rect.left;
+      initialY = e.clientY - rect.top;
+
+      dragHandle.style.cursor = 'grabbing';
+      element.style.cursor = 'grabbing';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      e.preventDefault();
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+
+      // Mantener dentro de los límites de la ventana
+      const rect = element.getBoundingClientRect();
+      const maxLeft = window.innerWidth - rect.width;
+      const maxTop = window.innerHeight - rect.height;
+
+      const finalLeft = Math.max(0, Math.min(currentX, maxLeft));
+      const finalTop = Math.max(0, Math.min(currentY, maxTop));
+
+      element.style.left = finalLeft + 'px';
+      element.style.top = finalTop + 'px';
+      element.style.transform = 'none';
+      element.style.right = 'auto';
+      element.style.bottom = 'auto';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        dragHandle.style.cursor = 'move';
+        element.style.cursor = 'default';
+      }
+    });
   }
 
   /**

@@ -3,6 +3,7 @@ import { InicioComponent } from './inicio/inicio.component';
 import { GeoportalComponent } from './geoportal/geoportal.component';
 import { PublicacionesComponent } from './publicaciones/publicaciones.component';
 import { ContactanosComponent } from './contactanos/contactanos.component';
+import { CursosComponent } from './cursos/cursos.component';
 import { AdminComponent } from './admin/admin.component';
 import { PruebaGeojsonComponent } from './prueba-geojson/prueba-geojson.component';
 import { adminGuard } from '../guard/admin.guard';
@@ -48,6 +49,13 @@ export const pagesRoutes: Routes = [
     data: { title: 'Publicaciones' }
   },
 
+  // Ruta de cursos
+  {
+    path: 'cursos',
+    component: CursosComponent,
+    data: { title: 'Cursos' }
+  },
+
   // Ruta de contáctanos
   {
     path: 'contactanos',
@@ -58,7 +66,7 @@ export const pagesRoutes: Routes = [
 
 
 
-  {   path: 'admin-map',    component: AdminComponent,   canActivate: [adminGuard]  },
+  
   { path: '403', component: Not403Component },
 
 

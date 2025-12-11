@@ -102,6 +102,10 @@
   gap: 8px;
 }
 
+.menu-toggle-btn {
+  color: #333;
+}
+
 .toolbar-title {
   margin: 0 0 0 16px;
   font-size: 20px;
@@ -112,7 +116,13 @@
   text-overflow: ellipsis;
 }
 
-.map-type-button {
+.map-type-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-type-name {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -120,13 +130,13 @@
   background: #f5f5f5;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.map-type-button:hover {
-  background: #e8e8e8;
-  border-color: #4A90E2;
+.map-type-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #4A90E2;
 }
 
 .map-type-text {
@@ -135,18 +145,25 @@
   color: #333;
 }
 
-.dropdown-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  color: #666;
+.map-type-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.map-type-button mat-icon:first-child {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+.map-type-icon-btn {
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.map-type-icon-btn:hover {
+  background-color: #f5f5f5;
   color: #4A90E2;
+}
+
+.map-type-icon-btn.active {
+  color: #4A90E2;
+  background-color: #e3f2fd;
 }
 
 .check-icon {
@@ -331,41 +348,50 @@ mat-menu-item {
 
 /* Estilos para el popup */
 .ol-popup {
-  position: absolute;
+  position: fixed !important;
   background-color: white;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid #cccccc;
-  bottom: 12px;
-  left: -50px;
-  min-width: 200px;
-  max-width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  min-width: 280px;
+  max-width: 400px;
+  z-index: 2000;
+  cursor: default;
 }
 
+.ol-popup.draggable {
+  cursor: move;
+}
+
+.ol-popup-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+  cursor: move;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+  position: relative;
+}
+
+.ol-popup-header:hover {
+  background: linear-gradient(135deg, #357ABD 0%, #2a5f8f 100%);
+}
+
+/* Ocultar flechas del popup ya que es flotante */
 .ol-popup:after,
 .ol-popup:before {
-  top: 100%;
-  border: solid transparent;
-  content: " ";
-  height: 0;
-  width: 0;
-  position: absolute;
-  pointer-events: none;
-}
-
-.ol-popup:after {
-  border-top-color: white;
-  border-width: 10px;
-  left: 48px;
-  margin-left: -10px;
-}
-
-.ol-popup:before {
-  border-top-color: #cccccc;
-  border-width: 11px;
-  left: 48px;
-  margin-left: -11px;
+  display: none;
 }
 
 .ol-popup-closer {
@@ -411,33 +437,60 @@ mat-menu-item {
 /* Responsive */
 @media (max-width: 768px) {
   .toolbar {
-    flex-wrap: wrap;
     padding: 8px 12px;
+    min-height: 56px;
+    flex-wrap: nowrap;
   }
 
   .toolbar-left {
-    flex: 1 1 100%;
-    margin-bottom: 8px;
+    flex: 0 0 auto;
+    margin-bottom: 0;
   }
 
   .toolbar-right {
-    flex: 1 1 100%;
+    flex: 0 0 auto;
     justify-content: flex-end;
+    margin-left: auto;
   }
 
   .toolbar-title {
-    font-size: 18px;
-    margin: 0 0 0 8px;
+    display: none;
   }
 
-  .map-type-button {
-    width: 100%;
-    justify-content: space-between;
+  .map-type-container {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .map-type-name {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .map-type-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
   }
 
   .map-type-text {
-    flex: 1;
-    text-align: left;
+    font-size: 12px;
+  }
+
+  .map-type-icons {
+    gap: 2px;
+  }
+
+  .map-type-icon-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .map-type-icon-btn mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
   }
 
   .list-panel {
@@ -459,17 +512,47 @@ mat-menu-item {
 }
 
 @media (max-width: 480px) {
-  .toolbar-title {
-    font-size: 16px;
-    margin: 0 0 0 4px;
+  .toolbar {
+    padding: 6px 8px;
+    min-height: 48px;
   }
 
-  .map-type-button {
-    padding: 6px 12px;
+  .menu-toggle-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .menu-toggle-btn mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .map-type-name {
+    padding: 2px 6px;
+  }
+
+  .map-type-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
   }
 
   .map-type-text {
-    font-size: 12px;
+    font-size: 10px;
+  }
+
+  .map-type-icon-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  .map-type-icon-btn mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
   }
 }
 
