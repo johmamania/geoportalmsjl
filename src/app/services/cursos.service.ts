@@ -48,7 +48,7 @@ export class CursosService {
         certificado: true,
         instructor: 'Dra. María González',
         fechaInicio: '20 de Marzo, 2024',
-        precio: 150
+        precio: 0
       },
       {
         id: 3,
@@ -72,7 +72,7 @@ export class CursosService {
         certificado: true,
         instructor: 'Dr. Luis Ramírez',
         fechaInicio: '5 de Abril, 2024',
-        precio: 250
+        precio: 0
       },
       {
         id: 5,
@@ -84,7 +84,7 @@ export class CursosService {
         certificado: true,
         instructor: 'Ing. Ana Torres',
         fechaInicio: '25 de Marzo, 2024',
-        precio: 200
+        precio: 0
       },
       {
         id: 6,
@@ -96,7 +96,7 @@ export class CursosService {
         certificado: false,
         instructor: 'Arq. Pedro Martínez',
         fechaInicio: '12 de Abril, 2024',
-        precio: 180
+        precio: 0
       },
       {
         id: 7,
@@ -108,7 +108,7 @@ export class CursosService {
         certificado: true,
         instructor: 'Ing. Jorge Herrera',
         fechaInicio: '8 de Abril, 2024',
-        precio: 300
+        precio: 0
       },
       {
         id: 8,
@@ -120,7 +120,7 @@ export class CursosService {
         certificado: true,
         instructor: 'Dra. Carmen López',
         fechaInicio: '18 de Abril, 2024',
-        precio: 220
+        precio: 0
       },
       {
         id: 9,
@@ -132,7 +132,7 @@ export class CursosService {
         certificado: true,
         instructor: 'Ing. Diego Fernández',
         fechaInicio: '22 de Abril, 2024',
-        precio: 190
+        precio: 0
       },
       {
         id: 10,
@@ -144,7 +144,7 @@ export class CursosService {
         certificado: true,
         instructor: 'Ing. Sofía Vargas',
         fechaInicio: '28 de Abril, 2024',
-        precio: 350
+        precio: 0
       }
     ];
   }

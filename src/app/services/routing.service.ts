@@ -74,7 +74,13 @@ export class RoutingService {
   private openRouteServiceApiKey = environment.openRouteService?.apiKey || '';
   private useOpenRouteService = environment.openRouteService?.useOpenRouteService !== false;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // Log para debugging en producción
+    console.log('🔧 RoutingService inicializado:');
+    console.log(`  - useOpenRouteService: ${this.useOpenRouteService}`);
+    console.log(`  - API Key presente: ${!!this.openRouteServiceApiKey && this.openRouteServiceApiKey.length > 0}`);
+    console.log(`  - Base URL: ${this.openRouteServiceBaseUrl}`);
+  }
 
   /**
    * Convierte el perfil de OSRM al perfil de OpenRouteService
@@ -194,6 +200,18 @@ export class RoutingService {
     return this.http.get<RouteResponse>(url).pipe(
       map(response => {
         if (response.code === 'Ok' && response.routes && response.routes.length > 0) {
+          // Si el perfil es "walking", multiplicar el tiempo por 7
+          // porque OSRM devuelve el tiempo como si fuera en auto
+          if (profile === 'walking') {
+            response.routes.forEach(route => {
+              route.duration = route.duration * 7;
+              route.legs.forEach(leg => {
+                leg.duration = leg.duration * 7;
+                leg.weight = leg.weight * 7;
+              });
+            });
+            console.log('⏱️ Tiempo ajustado para walking (multiplicado por 7)');
+          }
           return response;
         } else {
           throw new Error('No se pudo calcular la ruta');
@@ -219,17 +237,33 @@ export class RoutingService {
     destination: [number, number],
     profile: 'driving' | 'walking' | 'cycling' = 'driving'
   ): Observable<RouteResponse> {
+    // Verificar si debe usar OpenRouteService
+    const hasApiKey = this.openRouteServiceApiKey && this.openRouteServiceApiKey.trim().length > 0;
+    const shouldUseOpenRouteService = this.useOpenRouteService && hasApiKey;
+
+    console.log(`🗺️ Calculando ruta - Perfil: ${profile}`);
+    console.log(`  - useOpenRouteService: ${this.useOpenRouteService}`);
+    console.log(`  - API Key presente: ${hasApiKey}`);
+    console.log(`  - Usará OpenRouteService: ${shouldUseOpenRouteService}`);
+
     // Si está configurado para usar OpenRouteService y tiene API key
-    if (this.useOpenRouteService && this.openRouteServiceApiKey) {
+    if (shouldUseOpenRouteService) {
+      console.log('✅ Intentando con OpenRouteService primero...');
       return this.getRouteFromOpenRouteService(origin, destination, profile).pipe(
         catchError(error => {
           console.warn('⚠️ OpenRouteService falló, usando OSRM como fallback');
+          console.error('Error detalle:', error);
           return this.getRouteFromOSRM(origin, destination, profile);
         })
       );
     } else {
       // Usar OSRM directamente
-      console.log('ℹ️ Usando OSRM (OpenRouteService no configurado o deshabilitado)');
+      const reason = !this.useOpenRouteService
+        ? 'useOpenRouteService está deshabilitado'
+        : !hasApiKey
+          ? 'API Key no configurada'
+          : 'configuración desconocida';
+      console.log(`ℹ️ Usando OSRM directamente (${reason})`);
       return this.getRouteFromOSRM(origin, destination, profile);
     }
   }
