@@ -1,0 +1,94 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ esEdicion ? 'Editar Publicación' : 'Nueva Publicación' }}</h2>
+    <button mat-icon-button (click)="cancelar()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <form [formGroup]="publicacionForm" class="publicacion-form">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Título</mat-label>
+          <input matInput formControlName="titulo" placeholder="Ingrese el título">
+          <mat-error *ngIf="publicacionForm.get('titulo')?.hasError('required')">
+            {{ getErrorMessage('titulo') }}
+          </mat-error>
+          <mat-error *ngIf="publicacionForm.get('titulo')?.hasError('minlength')">
+            {{ getErrorMessage('titulo') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descripción</mat-label>
+          <textarea matInput formControlName="descripcion" rows="3" placeholder="Ingrese una descripción breve"></textarea>
+          <mat-error *ngIf="publicacionForm.get('descripcion')?.hasError('required')">
+            {{ getErrorMessage('descripcion') }}
+          </mat-error>
+          <mat-error *ngIf="publicacionForm.get('descripcion')?.hasError('minlength')">
+            {{ getErrorMessage('descripcion') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+
+      <div class="form-row two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Categoría</mat-label>
+          <mat-select formControlName="categoria">
+            <mat-option value="Tecnología">Tecnología</mat-option>
+            <mat-option value="Actualización">Actualización</mat-option>
+            <mat-option value="Documentación">Documentación</mat-option>
+            <mat-option value="Novedad">Novedad</mat-option>
+            <mat-option value="Mejora">Mejora</mat-option>
+            <mat-option value="Evento">Evento</mat-option>
+            <mat-option value="Noticia">Noticia</mat-option>
+            <mat-option value="Capacitacion">Capacitacion</mat-option>
+            <mat-option value="Otros">Otros</mat-option>
+          </mat-select>
+          <mat-error *ngIf="publicacionForm.get('categoria')?.hasError('required')">
+            {{ getErrorMessage('categoria') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Autor</mat-label>
+          <input matInput formControlName="autor" placeholder="Nombre del autor">
+          <mat-error *ngIf="publicacionForm.get('autor')?.hasError('required')">
+            {{ getErrorMessage('autor') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha</mat-label>
+          <input matInput type="date" formControlName="fecha">
+          <mat-error *ngIf="publicacionForm.get('fecha')?.hasError('required')">
+            {{ getErrorMessage('fecha') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>URL de Imagen</mat-label>
+          <input matInput formControlName="imagenruta" placeholder="https://ejemplo.com/imagen.jpg">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-checkbox formControlName="activo">Publicación activa</mat-checkbox>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+    <button mat-raised-button color="primary" type="button" (click)="guardar()" [disabled]="cargando || publicacionForm.invalid">
+      <mat-icon>{{ esEdicion ? 'save' : 'add' }}</mat-icon>
+      {{ esEdicion ? 'Actualizar' : 'Crear' }} Publicación
+    </button>
+  </mat-dialog-actions>
+</div>

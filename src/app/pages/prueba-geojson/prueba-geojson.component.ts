@@ -55,6 +55,7 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   featuresList: Array<{ layerId: string; layerName: string; feature: GeoJsonFeature; icon: string }> = [];
   selectedLayerId = signal<string | null>(null);
   menuOpen = signal<boolean>(false);
+  showLegend = signal<boolean>(false);
 
   // Tipos de mapas disponibles
   mapTypes = [
@@ -75,8 +76,29 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     private estadisticasService: EstadisticasService,
     private geojsonService: GeojsonService
   ) {
-    // Obtener las capas del servicio
-    this.geoJsonLayers = this.geojsonLayersService.getLayers();
+    // Obtener las capas del servicio y filtrar 'gps' de la lista visible
+    this.geoJsonLayers = this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
+  }
+
+  /**
+   * Obtiene las capas visibles excluyendo 'gps' (Límite SJL)
+   */
+  get visibleGeoJsonLayers(): GeoJsonLayer[] {
+    return this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
+  }
+
+  /**
+   * Obtiene todas las capas GeoJSON (incluyendo 'gps' para la leyenda)
+   */
+  get allGeoJsonLayers(): GeoJsonLayer[] {
+    return this.geojsonLayersService.getLayers();
+  }
+
+  /**
+   * Alterna la visibilidad del popup de leyenda
+   */
+  toggleLegend(): void {
+    this.showLegend.set(!this.showLegend());
   }
 
   ngOnInit(): void {
@@ -98,8 +120,8 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         this.geojsonLayersService.resetLayers();
         // Activar la capa seleccionada
         this.geojsonLayersService.activateLayer(layerId);
-        // Actualizar la lista local
-        this.geoJsonLayers = this.geojsonLayersService.getLayers();
+        // Actualizar la lista local (excluyendo 'gps' de la lista visible)
+        this.geoJsonLayers = this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
 
         // Si el mapa ya está inicializado, recargar las capas
         if (this.map) {
@@ -108,11 +130,40 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
       } else {
         // Si no hay parámetro, resetear a estado inicial (solo gps)
         this.geojsonLayersService.resetLayers();
-        this.geoJsonLayers = this.geojsonLayersService.getLayers();
+        this.geoJsonLayers = this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
+      }
+    });
 
-        // Si el mapa ya está inicializado, recargar las capas
+    // Obtener query params para mostrar ubicación del usuario
+    this.route.queryParams.subscribe(queryParams => {
+      const lat = queryParams['lat'];
+      const lng = queryParams['lng'];
+      const showLocation = queryParams['showLocation'];
+
+      if (showLocation === 'true' && lat && lng) {
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+
+        // Guardar la ubicación
+        this.currentLocation = { latitude, longitude };
+
+        // Si el mapa ya está inicializado, mostrar la ubicación
         if (this.map) {
-          this.reloadVisibleLayers();
+          this.showUserLocationOnMap(latitude, longitude);
+        } else {
+          // Si el mapa aún no está inicializado, esperar a que se inicialice
+          // Usar un intervalo para verificar cuando el mapa esté listo
+          const checkMapInterval = setInterval(() => {
+            if (this.map) {
+              clearInterval(checkMapInterval);
+              this.showUserLocationOnMap(latitude, longitude);
+            }
+          }, 100);
+
+          // Limpiar el intervalo después de 5 segundos si el mapa no se inicializa
+          setTimeout(() => {
+            clearInterval(checkMapInterval);
+          }, 5000);
         }
       }
     });
@@ -124,14 +175,108 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
       // Cargar todas las capas visibles después de inicializar el mapa
       setTimeout(() => {
         this.loadVisibleLayers();
+        // Verificar si hay query params para mostrar ubicación después de inicializar el mapa
+        this.checkAndShowUserLocationFromQueryParams();
       }, 500);
     }, 300);
+  }
+
+  irAMiUbicacion(): void {
+    // Si ya tenemos la ubicación guardada y el mapa está inicializado, mostrarla directamente
+    if (this.currentLocation && this.map) {
+      this.showUserLocationOnMap(this.currentLocation.latitude, this.currentLocation.longitude);
+      return;
+    }
+
+    // Si no tenemos la ubicación, obtenerla
+    if (!navigator.geolocation) {
+      alert('La geolocalización no está disponible en tu navegador.');
+      return;
+    }
+
+    // Mostrar indicador de carga
+    const loadingMessage = document.createElement('div');
+    loadingMessage.textContent = 'Obteniendo tu ubicación...';
+    loadingMessage.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 8px; z-index: 10000; font-family: Arial, sans-serif;';
+    document.body.appendChild(loadingMessage);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        document.body.removeChild(loadingMessage);
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        // Guardar la ubicación
+        this.currentLocation = { latitude, longitude };
+
+        // Si el mapa está inicializado, mostrar la ubicación directamente
+        if (this.map) {
+          this.showUserLocationOnMap(latitude, longitude);
+        } else {
+          // Si el mapa no está inicializado, esperar a que se inicialice
+          const checkMapInterval = setInterval(() => {
+            if (this.map) {
+              clearInterval(checkMapInterval);
+              this.showUserLocationOnMap(latitude, longitude);
+            }
+          }, 100);
+
+          // Limpiar el intervalo después de 5 segundos
+          setTimeout(() => {
+            clearInterval(checkMapInterval);
+          }, 5000);
+        }
+      },
+      (error) => {
+        document.body.removeChild(loadingMessage);
+        let errorMessage = 'Error al obtener tu ubicación.';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Permiso de ubicación denegado. Por favor, permite el acceso a tu ubicación.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Información de ubicación no disponible.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Tiempo de espera agotado al obtener la ubicación.';
+            break;
+        }
+        alert(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  }
+  /**
+   * Verifica si hay query params para mostrar la ubicación del usuario
+   */
+  private checkAndShowUserLocationFromQueryParams(): void {
+    const queryParams = this.route.snapshot.queryParams;
+    const lat = queryParams['lat'];
+    const lng = queryParams['lng'];
+    const showLocation = queryParams['showLocation'];
+
+    if (showLocation === 'true' && lat && lng && this.map) {
+      const latitude = parseFloat(lat);
+      const longitude = parseFloat(lng);
+      this.showUserLocationOnMap(latitude, longitude);
+    }
   }
 
   /**
    * Carga todas las capas visibles en el mapa
    */
   private loadVisibleLayers(): void {
+    // Siempre cargar la capa 'gps' (Límite SJL) primero
+    const sjlLayer = this.geojsonLayersService.getLayerById('gps');
+    if (sjlLayer && !this.layers.has('gps')) {
+      this.loadGeoJsonLayer(sjlLayer);
+    }
+
+    // Cargar las demás capas visibles
     this.geoJsonLayers.forEach(layer => {
       if (layer.visible) {
         this.loadGeoJsonLayer(layer);
@@ -521,6 +666,11 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private removeGeoJsonLayer(layerId: string): void {
+    // Proteger la capa SJL (gps) - nunca debe eliminarse
+    if (layerId === 'gps') {
+      return;
+    }
+
     const layer = this.layers.get(layerId);
     if (layer) {
       this.map.removeLayer(layer);
@@ -585,38 +735,7 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
       (position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
-
-        // Guardar la ubicación actual
-        this.currentLocation = { latitude, longitude };
-
-        // Convertir coordenadas a EPSG:3857
-        const center = fromLonLat([longitude, latitude]);
-
-        // Crear marcador para la ubicación actual
-        this.currentLocationMarker = new Feature({
-          geometry: new Point(center),
-          name: 'Mi Ubicación',
-          description: 'Ubicación actual'
-        });
-
-        // Estilo para el marcador de ubicación actual usando icono rojo
-        this.currentLocationMarker.setStyle(new Style({
-          image: new Icon({
-            anchor: [0.5, 0.5],
-            src: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            scale: 0.3, // Ajustar para que el icono sea de 15x15px (el icono original es ~50px, 15/50 = 0.3)
-            opacity: 1
-          })
-        }));
-
-        // Agregar el marcador a la capa de marcadores
-        const markerLayer = (this.map as any).markerLayer as VectorLayer<VectorSource>;
-
-        if (markerLayer) {
-          markerLayer.getSource()?.addFeature(this.currentLocationMarker);
-        }
-
-        console.log('Ubicación actual marcada:', { latitude, longitude });
+        this.showUserLocationOnMap(latitude, longitude);
       },
       (error) => {
         console.warn('Error al obtener la ubicación:', error.message);
@@ -627,6 +746,62 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         maximumAge: 0
       }
     );
+  }
+
+  /**
+   * Muestra la ubicación del usuario en el mapa
+   */
+  private showUserLocationOnMap(latitude: number, longitude: number): void {
+    if (!this.map) {
+      return;
+    }
+
+    // Guardar la ubicación actual
+    this.currentLocation = { latitude, longitude };
+
+    // Convertir coordenadas a EPSG:3857
+    const center = fromLonLat([longitude, latitude]);
+
+    // Remover marcador anterior si existe
+    if (this.currentLocationMarker) {
+      const markerLayer = (this.map as any).markerLayer as VectorLayer<VectorSource>;
+      if (markerLayer) {
+        markerLayer.getSource()?.removeFeature(this.currentLocationMarker);
+      }
+    }
+
+    // Crear marcador para la ubicación actual
+    this.currentLocationMarker = new Feature({
+      geometry: new Point(center),
+      name: 'Mi Ubicación',
+      description: 'Ubicación actual'
+    });
+
+    // Estilo para el marcador de ubicación actual usando icono rojo
+    this.currentLocationMarker.setStyle(new Style({
+      image: new Icon({
+        anchor: [0.5, 0.5],
+        src: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        scale: 0.3, // Ajustar para que el icono sea de 15x15px (el icono original es ~50px, 15/50 = 0.3)
+        opacity: 1
+      })
+    }));
+
+    // Agregar el marcador a la capa de marcadores
+    const markerLayer = (this.map as any).markerLayer as VectorLayer<VectorSource>;
+
+    if (markerLayer) {
+      markerLayer.getSource()?.addFeature(this.currentLocationMarker);
+    }
+
+    // Centrar el mapa en la ubicación del usuario
+    this.map.getView().animate({
+      center: center,
+      zoom: 16,
+      duration: 1000
+    });
+
+    console.log('Ubicación actual marcada:', { latitude, longitude });
   }
 
   /**

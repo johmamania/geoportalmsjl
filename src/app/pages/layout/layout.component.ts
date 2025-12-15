@@ -58,7 +58,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
+
     // Cerrar el menú cuando cambie la ruta
     this.routerSubscription = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -105,5 +105,18 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   getIconForCategory(id: string): string {
     return this.categoriasService.getIconForCategory(id);
+  }
+
+  /**
+   * Maneja el click en un item del menú
+   */
+  onMenuItemClick(item: MenuItem, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+
+    // Navegar normalmente a la ruta
+    this.router.navigate([item.route]);
+    this.closeMenu();
   }
 }

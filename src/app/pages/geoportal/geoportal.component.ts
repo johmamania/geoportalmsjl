@@ -26,7 +26,7 @@ import { EventTypes } from 'ol/Observable';
 import { CategoriasService } from '../../services/categorias.service';
 import { RoutingService } from '../../services/routing.service';
 import Swal from 'sweetalert2';
-import { FooterComponent } from '../../components/footer/footer.component';
+import { FooterComponent } from '../footer/footer.component';
 
 
 @Component({

@@ -8,6 +8,7 @@ import { AdminComponent } from './admin/admin.component';
 import { PruebaGeojsonComponent } from './prueba-geojson/prueba-geojson.component';
 import { adminGuard } from '../guard/admin.guard';
 import { Not403Component } from './not403/not403.component';
+import { LoginComponent } from '../login/login.component';
 
 /**
  * Rutas hijas del LayoutComponent
@@ -26,6 +27,13 @@ export const pagesRoutes: Routes = [
     path: 'inicio',
     component: InicioComponent,
     data: { title: 'Inicio' }
+  },
+
+  // Ruta de login
+  {
+    path: 'login',
+    component: LoginComponent,
+    data: { title: 'Login' }
   },
 
   // Ruta del geoportal
@@ -63,10 +71,17 @@ export const pagesRoutes: Routes = [
     data: { title: 'Contáctanos' }
   },
 
+  // Ruta de login
+  {
+    path: 'login',
+    component: LoginComponent,
+    data: { title: 'Iniciar Sesión' }
+  },
 
 
 
-  
+
+
   { path: '403', component: Not403Component },
 
 

@@ -1,6 +1,6 @@
 <div class="inicio-container">
   <video class="background-video" autoplay loop playsinline muted #backgroundVideo>
-    <source src="assets/VIDEO_INICIO.mp4" type="video/mp4">
+    <source src="assets/video/VIDEO_INICIO.mp4" type="video/mp4">
     Tu navegador no soporta la reproducción de video. Por favor, actualiza tu navegador.
   </video>
 
@@ -12,8 +12,8 @@
     <div class="header-section">
       <div class="title">
         <h1>GeoPortal</h1>
-        <h2>San Juan de Lurigancho</h2>
-        <p class="subtitle">Sistema de Información Geográfica Municipal</p>
+        <h2>San Juan de Lurigancho </h2>
+
       </div>
     </div>
 
@@ -21,8 +21,20 @@
     <div class="categorias-container">
       <div class="categorias-content">
         <div class="categorias-header">
-        
+
         <div class="categorias-buttons">
+          <!-- Botón Mi Ubicación -->
+          <button mat-raised-button
+                  class="categoria-button categoria-button-location"
+                  (click)="irAMiUbicacion()"
+               
+                  matTooltipPosition="right">
+            <div class="button-content">
+              <mat-icon class="location-icon">location_on</mat-icon>
+              <span class="button-text">Mi ubicación</span>
+            </div>
+          </button>
+          <!-- Botones de categorías -->
           <button *ngFor="let layer of geojsonLayers; let i = index"
                   mat-raised-button
                   color="warn"
@@ -37,6 +49,39 @@
       </div>
     </div>
   </div>
+
+  <!-- Botón de leyenda flotante -->
+  <button mat-fab
+          class="legend-button"
+          (click)="toggleLegend()"
+          matTooltip="Leyenda de Ubicaciones"
+          color="primary">
+    <mat-icon>info</mat-icon>
+  </button>
 </div>
+
+<!-- Popup de Leyenda -->
+<div class="legend-popup" *ngIf="showLegend()">
+  <div class="legend-header">
+    <h3>Tipos de Ubicación</h3>
+    <button mat-icon-button (click)="toggleLegend()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="legend-content">
+    <div class="legend-table">
+      <div class="legend-row" *ngFor="let layer of allGeoJsonLayers">
+        <div class="legend-icon-cell">
+          <img [src]="layer.icon" [alt]="layer.name" class="legend-icon-img">
+        </div>
+        <div class="legend-name-cell">
+          <span>{{ layer.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="legend-overlay" *ngIf="showLegend()" (click)="toggleLegend()"></div>
+
 <app-footer [alwaysVisible]="true"></app-footer>
 

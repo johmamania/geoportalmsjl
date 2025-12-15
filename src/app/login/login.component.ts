@@ -1,17 +1,22 @@
 import { Component, signal } from '@angular/core';
 import { MaterialModule } from '../material/material.module';
-import { NgIf } from '@angular/common';
+import { NgIf, NgFor } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import Swal from 'sweetalert2';
 import { AdminAuthService } from '../services/admin-auth.service';
 import { AdminLoginRequest } from '../model/admin-auth';
 
+interface Categoria {
+  titulo: string;
+  icono: string;
+  descripcion: string;
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [MaterialModule, NgIf, FormsModule, ReactiveFormsModule],
+  imports: [MaterialModule, NgIf, NgFor, FormsModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -19,6 +24,7 @@ export class LoginComponent {
   error: string = '';
   message: string = '';
   _formulario: FormGroup;
+  _formularioRegistro: FormGroup;
   username: string = '';
   password: string = '';
   accessCode: string = '';
@@ -26,18 +32,91 @@ export class LoginComponent {
   showCodeInput = signal(false);
   accessCodeValue = signal<string | null>(null);
   showPassword = false;
+  showRegistro = signal(false); // Controla qué formulario mostrar (false = Iniciar Sesión por defecto)
+
+  // Lista de categorías de cursos
+  categorias: Categoria[] = [
+    {
+      titulo: 'Capacitación',
+      icono: 'school',
+      descripcion: 'Desarrolla tus habilidades profesionales con nuestros cursos de capacitación. Aprende nuevas competencias que te ayudarán a destacar en el mercado laboral y alcanzar tus metas profesionales.'
+    },
+    {
+      titulo: 'Tecnología',
+      icono: 'computer',
+      descripcion: 'Mantente actualizado con las últimas tendencias tecnológicas. Nuestros cursos cubren desde programación básica hasta tecnologías avanzadas, preparándote para el futuro digital.'
+    },
+    {
+      titulo: 'Seguridad',
+      icono: 'security',
+      descripcion: 'Aprende sobre seguridad informática, protección de datos y mejores prácticas para mantener tu información y la de tu organización segura en el mundo digital actual.'
+    },
+    {
+      titulo: 'Emprendimiento',
+      icono: 'business_center',
+      descripcion: 'Conviértete en un emprendedor exitoso. Aprende a crear, gestionar y hacer crecer tu negocio con estrategias probadas y herramientas prácticas para el éxito empresarial.'
+    },
+    {
+      titulo: 'Marketing',
+      icono: 'campaign',
+      descripcion: 'Domina las técnicas de marketing digital y tradicional. Aprende a promocionar productos y servicios efectivamente, aumentar ventas y construir una marca sólida en el mercado.'
+    },
+    {
+      titulo: 'Finanzas',
+      icono: 'account_balance',
+      descripcion: 'Gestiona tus finanzas personales y empresariales con confianza. Aprende sobre inversiones, presupuestos, contabilidad y planificación financiera para alcanzar la estabilidad económica.'
+    }
+  ];
 
   constructor(
-    public dialog: MatDialog,
-    public dialogRef: MatDialogRef<LoginComponent>,
     private adminAuthService: AdminAuthService,
     private router: Router,
   ) {
+    // Formulario de login
     this._formulario = new FormGroup({
       username: new FormControl("", Validators.required),
       password: new FormControl("", Validators.required),
       accessCode: new FormControl("")
     });
+
+    // Formulario de registro
+    this._formularioRegistro = new FormGroup({
+      nombres: new FormControl("", [Validators.required, Validators.minLength(2)]),
+      apellidos: new FormControl("", [Validators.required, Validators.minLength(2)]),
+      correo: new FormControl("", [Validators.required, Validators.email]),
+      direccion: new FormControl("", Validators.required),
+      edad: new FormControl("", [Validators.required, Validators.min(18), Validators.max(100)]),
+      dni: new FormControl("", [Validators.required, Validators.pattern(/^\d{8}$/)]),
+      password: new FormControl("", [Validators.required, Validators.minLength(8)]),
+      confirmPassword: new FormControl("", Validators.required)
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  // Validador personalizado para verificar que las contraseñas coincidan
+  passwordMatchValidator(formGroup: FormGroup) {
+    const password = formGroup.get('password');
+    const confirmPassword = formGroup.get('confirmPassword');
+
+    if (password && confirmPassword && password.value !== confirmPassword.value) {
+      confirmPassword.setErrors({ passwordMismatch: true });
+      return { passwordMismatch: true };
+    } else {
+      if (confirmPassword && confirmPassword.hasError('passwordMismatch')) {
+        confirmPassword.setErrors(null);
+      }
+      return null;
+    }
+  }
+
+  toggleForm(): void {
+    this.showRegistro.set(!this.showRegistro());
+    this.error = '';
+    this.message = '';
+    if (!this.showRegistro()) {
+      this._formularioRegistro.reset();
+    } else {
+      this.resetForm();
+    }
   }
 
   login() {
@@ -221,7 +300,6 @@ export class LoginComponent {
         showConfirmButton: false,
         confirmButtonColor: '#1e3c72'
       }).then(() => {
-        this.dialogRef.close();
         this.router.navigate(['/admin-map']);
       });
     } else {
@@ -236,7 +314,7 @@ export class LoginComponent {
   }
 
   closeDialog(): void {
-    this.dialogRef.close();
+    this.router.navigate(['/inicio']);
   }
 
   resetForm(): void {
@@ -250,11 +328,32 @@ export class LoginComponent {
   getMaskedCode(): string {
     const code = this.accessCodeValue();
     if (!code) return '';
-    
+
     const codeLength = code.length;
     if (codeLength <= 4) return code;
-    
+
     const last4Digits = code.substring(codeLength - 4);
     return '*'.repeat(codeLength - 4) + last4Digits;
+  }
+
+  registrar(): void {
+    if (this._formularioRegistro.invalid) {
+      this._formularioRegistro.markAllAsTouched();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formulario incompleto',
+        text: 'Por favor, complete todos los campos correctamente',
+        confirmButtonColor: '#d32f2f'
+      });
+      return;
+    }
+
+    // Por ahora solo muestra un mensaje, la funcionalidad se implementará después
+    Swal.fire({
+      icon: 'info',
+      title: 'Registro',
+      text: 'La funcionalidad de registro estará disponible próximamente',
+      confirmButtonColor: '#1e3c72'
+    });
   }
 }

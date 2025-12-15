@@ -20,13 +20,20 @@ export const routes: Routes = [
   {
     path: 'admin',
     children: [
-      {
-        path: 'login',
-        component: LoginComponent
-      },
+      
       {
         path: 'map',
         component: AdminComponent,
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'publicaciones/registrar',
+        loadComponent: () => import('./pages/admin/admin-publicaciones/registrar-publicaciones/registrar-publicaciones.component').then(m => m.RegistrarPublicacionesComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'publicaciones/registrar/:id',
+        loadComponent: () => import('./pages/admin/admin-publicaciones/registrar-publicaciones/registrar-publicaciones.component').then(m => m.RegistrarPublicacionesComponent),
         canActivate: [adminGuard]
       },
       {

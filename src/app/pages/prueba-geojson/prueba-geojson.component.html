@@ -11,16 +11,15 @@
       <mat-divider></mat-divider>
       <div class="sidenav-content">
         <mat-list>
-          <mat-list-item *ngFor="let layer of geoJsonLayers">
-            <mat-checkbox
-              [checked]="isLayerVisible(layer.id)"
-              (change)="toggleLayer(layer.id)"
-              class="layer-checkbox">
-              <div class="layer-item">
-                <img [src]="layer.icon" [alt]="layer.name" class="layer-icon">
-                <span>{{ layer.name }}</span>
-              </div>
-            </mat-checkbox>
+          <mat-list-item *ngFor="let layer of visibleGeoJsonLayers"
+                         class="layer-list-item"
+                         [class.layer-selected]="isLayerVisible(layer.id)"
+                         (click)="toggleLayer(layer.id)">
+            <div class="layer-item">
+              <div class="layer-circle" [class.circle-selected]="isLayerVisible(layer.id)"></div>
+              <img [src]="layer.icon" [alt]="layer.name" class="layer-icon">
+              <span>{{ layer.name }}</span>
+            </div>
           </mat-list-item>
         </mat-list>
       </div>
@@ -30,8 +29,17 @@
       <!-- Toolbar superior -->
       <div class="toolbar">
         <div class="toolbar-left">
-          <button mat-icon-button (click)="toggleMenu()" matTooltip="Mostrar/Ocultar Menú" class="menu-toggle-btn">
+          <button mat-icon-button (click)="toggleMenu()"
+          matTooltip="Mostrar/Ocultar Menú"
+          class="menu-toggle-btn"
+          [class.menu-open]="menuOpen()"
+          [class.menu-closed]="!menuOpen()">
             <mat-icon>menu</mat-icon>
+          </button>
+          <button mat-icon-button (click)="irAMiUbicacion()"
+          matTooltip="Mi ubicación"
+          class="menu-toggle-btn location-btn">
+            <mat-icon>location_on</mat-icon>
           </button>
           <h1 class="toolbar-title"> </h1>
         </div>
@@ -92,9 +100,40 @@
         <!-- Mapa -->
         <div class="map-container">
           <div id="geojson-map" class="map"></div>
+          <!-- Botón de leyenda -->
+          <button mat-fab
+                  class="legend-button"
+                  (click)="toggleLegend()"
+                  matTooltip="Leyenda de Ubicaciones"
+                  color="primary">
+            <mat-icon>info</mat-icon>
+          </button>
         </div>
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
+
+  <!-- Popup de Leyenda -->
+  <div class="legend-popup" *ngIf="showLegend()">
+    <div class="legend-header">
+      <h3>Tipos de Ubicación</h3>
+      <button mat-icon-button (click)="toggleLegend()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="legend-content">
+      <div class="legend-table">
+        <div class="legend-row" *ngFor="let layer of allGeoJsonLayers">
+          <div class="legend-icon-cell">
+            <img [src]="layer.icon" [alt]="layer.name" class="legend-icon-img">
+          </div>
+          <div class="legend-name-cell">
+            <span>{{ layer.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="legend-overlay" *ngIf="showLegend()" (click)="toggleLegend()"></div>
 </div>
 

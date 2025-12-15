@@ -1,96 +1,303 @@
 <div class="login-dialog-wrapper">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <div class="header-content">
-        <br>
-        <h2 class="login-title">Iniciar Sesión</h2>
-        <img src="assets/logomsjl.jpg" alt="Logo" class="logo-img">
-      </div>
-    </mat-card-header>
-    <h2 class="login-title">Ingrese sus credenciales</h2>
+  <div class="two-column-container">
+    <!-- Columna Izquierda: Imagen/Ilustración -->
+    <div class="column left-column image-column">
+      <div class="image-container">
+        <!-- Imagen arriba -->
+        <img src="assets/img/loguin.png" alt="Login Illustration" class="top-image" onerror="this.src='assets/img/logomsjl.jpg'">
 
-    <form class="form-group" [formGroup]="_formulario" (ngSubmit)="login()" #loginForm="ngForm">
-      <mat-card-content>
-        <!-- Campos de usuario y contraseña (primera fase) -->
-        <div *ngIf="!showCodeInput()">
-          <mat-form-field class="example-full-width" appearance="fill">
-            <mat-label style="font-weight: bold;">USUARIO</mat-label>
-            <mat-icon matPrefix>person</mat-icon>
-            <input matInput type="text" name="username" formControlName="username"
-               placeholder="Usuario Administrador"
-              [(ngModel)]="username" class="username" maxlength="60" />
-            <mat-error *ngIf="_formulario.get('username')?.hasError('required')">
-              El usuario es requerido
-            </mat-error>
-          </mat-form-field>
-          <mat-form-field class="example-full-width" appearance="fill">
-            <mat-label style="font-weight: bold;">CONTRASEÑA</mat-label>
-            <mat-icon matPrefix>lock</mat-icon>
-            <input matInput type="password" formControlName="password" name="password"
-              placeholder="Contraseña" [(ngModel)]="password" class="password"
-              required minlength="8" maxlength="30" />
-            <mat-error *ngIf="_formulario.get('password')?.hasError('required')">
-              La contraseña es requerida
-            </mat-error>
-          </mat-form-field>
-        </div>
+        <!-- Título -->
+        <h2 class="left-column-title">Bienvenido, Inicia Sesión o Regístrate para llevar cursos con certificaciones</h2>
 
-        <!-- Campo de código de acceso (segunda fase) -->
-        <div *ngIf="showCodeInput()">
-          <div class="access-code-display">
-            <p>Código de acceso configurado automáticamente:</p>
-            <h2>{{ getMaskedCode() }}</h2>
-            <p class="access-code-hint">Últimos 4 dígitos visibles. Verifique y confirme.</p>
+        <!-- Campos de categorías -->
+        <div class="categories-grid">
+          <div class="category-card" *ngFor="let categoria of categorias">
+            <h3 class="category-title">{{ categoria.titulo }}</h3>
+            <mat-icon class="category-icon">{{ categoria.icono }}</mat-icon>
+            <p class="category-description">{{ categoria.descripcion }}</p>
           </div>
-          <mat-form-field class="example-full-width" appearance="fill">
-            <mat-label style="font-weight: bold;">CÓDIGO DE ACCESO</mat-label>
-            <mat-icon matPrefix>vpn_key</mat-icon>
-            <input matInput
-                   [type]="showPassword ? 'text' : 'password'"
-                   formControlName="accessCode"
-                   name="accessCode"
-                   [placeholder]="getMaskedCode() || 'Código configurado automáticamente'"
-                   [(ngModel)]="accessCode"
-                   class="access-code" />
-            <button mat-icon-button
-                    matSuffix
-                    (click)="showPassword = !showPassword"
-                    type="button"
-                    matTooltip="{{ showPassword ? 'Ocultar' : 'Mostrar' }} código">
-              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-error *ngIf="_formulario.get('accessCode')?.hasError('required')">
-              El código de acceso es requerido
-            </mat-error>
-          </mat-form-field>
         </div>
+      </div>
+    </div>
 
-        <!-- Mensajes de error -->
-        <div *ngIf="error" class="error-message">
-          <mat-icon>error</mat-icon>
-          {{ error }}
+    <!-- Columna Derecha: Formularios -->
+    <div class="column right-column form-column">
+      <!-- Toggle para cambiar entre formularios -->
+      <div class="form-toggle-container">
+        <button mat-button
+                class="toggle-option"
+                [class.active]="!showRegistro()"
+                (click)="showRegistro.set(false)">
+          <mat-icon>login</mat-icon>
+          Iniciar Sesión
+        </button>
+        <button mat-button
+                class="toggle-option"
+                [class.active]="showRegistro()"
+                (click)="showRegistro.set(true)">
+          <mat-icon>person_add</mat-icon>
+          Registrarse
+        </button>
+      </div>
+
+      <!-- Formulario de Registrarse -->
+      <div class="form-container" *ngIf="showRegistro()">
+        <div class="form-wrapper">
+          <mat-card class="login-card">
+          <mat-card-header>
+            <div class="header-content">
+
+              <p class="welcome-text">Crea tu cuenta para disfrutar de todos los beneficios y las mejores promociones que tenemos para ti.</p>
+            </div>
+          </mat-card-header>
+
+          <form class="form-group" [formGroup]="_formularioRegistro" (ngSubmit)="registrar()" #registroForm="ngForm">
+            <mat-card-content>
+              <!-- Fila 1: Nombres y Apellidos -->
+              <div class="form-row">
+                <mat-form-field class="form-field-half" appearance="fill">
+                  <mat-label style="font-weight: bold;">NOMBRES</mat-label>
+                  <mat-icon matPrefix>person</mat-icon>
+                  <input matInput type="text" formControlName="nombres" placeholder="Ingrese sus nombres" />
+                  <mat-error *ngIf="_formularioRegistro.get('nombres')?.hasError('required')">
+                    Los nombres son requeridos
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('nombres')?.hasError('minlength')">
+                    Mínimo 2 caracteres
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="form-field-half" appearance="fill">
+                  <mat-label style="font-weight: bold;">APELLIDOS</mat-label>
+                  <mat-icon matPrefix>person_outline</mat-icon>
+                  <input matInput type="text" formControlName="apellidos" placeholder="Ingrese sus apellidos" />
+                  <mat-error *ngIf="_formularioRegistro.get('apellidos')?.hasError('required')">
+                    Los apellidos son requeridos
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('apellidos')?.hasError('minlength')">
+                    Mínimo 2 caracteres
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Fila 2: DNI y Edad -->
+              <div class="form-row">
+                <mat-form-field class="form-field-half" appearance="fill">
+                  <mat-label style="font-weight: bold;">DNI</mat-label>
+                  <mat-icon matPrefix>badge</mat-icon>
+                  <input matInput type="text" formControlName="dni" placeholder="12345678" maxlength="8" />
+                  <mat-error *ngIf="_formularioRegistro.get('dni')?.hasError('required')">
+                    El DNI es requerido
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('dni')?.hasError('pattern')">
+                    El DNI debe tener 8 dígitos
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="form-field-half" appearance="fill">
+                  <mat-label style="font-weight: bold;">EDAD</mat-label>
+                  <mat-icon matPrefix>calendar_today</mat-icon>
+                  <input matInput type="number" formControlName="edad" placeholder="Ingrese su edad" min="18" max="100" />
+                  <mat-error *ngIf="_formularioRegistro.get('edad')?.hasError('required')">
+                    La edad es requerida
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('edad')?.hasError('min')">
+                    Debe ser mayor de 18 años
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('edad')?.hasError('max')">
+                    Edad inválida
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Fila 3: Correo -->
+              <div class="form-row">
+                <mat-form-field class="example-full-width" appearance="fill">
+                  <mat-label style="font-weight: bold;">CORREO ELECTRÓNICO</mat-label>
+                  <mat-icon matPrefix>email</mat-icon>
+                  <input matInput type="email" formControlName="correo" placeholder="correo@ejemplo.com" />
+                  <mat-error *ngIf="_formularioRegistro.get('correo')?.hasError('required')">
+                    El correo es requerido
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('correo')?.hasError('email')">
+                    Ingrese un correo válido
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Fila 4: Dirección -->
+              <div class="form-row">
+                <mat-form-field class="example-full-width" appearance="fill">
+                  <mat-label style="font-weight: bold;">DIRECCIÓN</mat-label>
+                  <mat-icon matPrefix>home</mat-icon>
+                  <input matInput type="text" formControlName="direccion" placeholder="Ingrese su dirección" />
+                  <mat-error *ngIf="_formularioRegistro.get('direccion')?.hasError('required')">
+                    La dirección es requerida
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Fila 5: Contraseña y Confirmar Contraseña -->
+              <div class="form-row">
+                <mat-form-field class="form-field-half" appearance="fill">
+                  <mat-label style="font-weight: bold;">CONTRASEÑA</mat-label>
+                  <mat-icon matPrefix>lock</mat-icon>
+                  <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password"
+                    placeholder="Mínimo 8 caracteres" />
+                  <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button">
+                    <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <mat-error *ngIf="_formularioRegistro.get('password')?.hasError('required')">
+                    La contraseña es requerida
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('password')?.hasError('minlength')">
+                    Mínimo 8 caracteres
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="form-field-half" appearance="fill">
+                  <mat-label style="font-weight: bold;">CONFIRMAR CONTRASEÑA</mat-label>
+                  <mat-icon matPrefix>lock_outline</mat-icon>
+                  <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="confirmPassword"
+                    placeholder="Confirme su contraseña" />
+                  <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button">
+                    <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <mat-error *ngIf="_formularioRegistro.get('confirmPassword')?.hasError('required')">
+                    Confirme su contraseña
+                  </mat-error>
+                  <mat-error *ngIf="_formularioRegistro.get('confirmPassword')?.hasError('passwordMismatch')">
+                    Las contraseñas no coinciden
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Mensajes de error -->
+              <div *ngIf="error" class="error-message">
+                <mat-icon>error</mat-icon>
+                {{ error }}
+              </div>
+
+              <!-- Botones -->
+              <button mat-raised-button type="submit" class="add" [disabled]="_formularioRegistro.invalid">
+                Registrarse
+                <mat-icon>person_add</mat-icon>
+              </button>
+
+              <button mat-raised-button type="button" class="volver" (click)="closeDialog()">
+                Cancelar
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-card-content>
+          </form>
+          </mat-card>
         </div>
+      </div>
 
-        <!-- Botones -->
-        <button mat-raised-button type="submit" class="add" [disabled]="_formulario.invalid || loading()">
-          <mat-spinner *ngIf="loading()" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
-          <span *ngIf="!loading()">
-            {{ showCodeInput() ? 'Verificar Código' : 'Iniciar Sesión' }}
-          </span>
-          <mat-icon *ngIf="!loading()">{{ showCodeInput() ? 'check' : 'arrow_forward' }}</mat-icon>
-        </button>
+      <!-- Formulario de Iniciar Sesión -->
+      <div class="form-container" *ngIf="!showRegistro()">
+        <div class="form-wrapper">
+          <mat-card class="login-card">
+          <mat-card-header>
+            <div class="header-content">
+              <mat-icon class="icon-title">person_outline</mat-icon>
+              <p class="welcome-text">Ingresa a tu cuenta para disfrutar de tus beneficios y de las mejores promociones que tenemos para ti.</p>
+            </div>
+          </mat-card-header>
 
-        <button *ngIf="showCodeInput()" mat-raised-button type="button" class="volver" (click)="resetForm()">
-          Volver
-          <mat-icon>arrow_back</mat-icon>
-        </button>
+          <form class="form-group" [formGroup]="_formulario" (ngSubmit)="login()" #loginForm="ngForm">
+            <mat-card-content>
+              <!-- Campos de usuario y contraseña (primera fase) -->
+              <div *ngIf="!showCodeInput()">
+                <mat-form-field class="example-full-width" appearance="fill">
+                  <mat-label style="font-weight: bold;">USUARIO</mat-label>
+                  <mat-icon matPrefix>person</mat-icon>
+                  <input matInput type="text" name="username" formControlName="username"
+                     placeholder="Usuario Administrador"
+                    [(ngModel)]="username" class="username" maxlength="60" />
+                  <mat-error *ngIf="_formulario.get('username')?.hasError('required')">
+                    El usuario es requerido
+                  </mat-error>
+                </mat-form-field>
+                <mat-form-field class="example-full-width" appearance="fill">
+                  <mat-label style="font-weight: bold;">CONTRASEÑA</mat-label>
+                  <mat-icon matPrefix>lock</mat-icon>
+                  <input matInput type="password" formControlName="password" name="password"
+                    placeholder="Contraseña" [(ngModel)]="password" class="password"
+                    required minlength="8" maxlength="30" />
+                  <mat-error *ngIf="_formulario.get('password')?.hasError('required')">
+                    La contraseña es requerida
+                  </mat-error>
+                </mat-form-field>
+              </div>
 
-        <button *ngIf="!showCodeInput()" mat-raised-button type="button" class="volver" (click)="closeDialog()">
-          Cancelar
-          <mat-icon>close</mat-icon>
-        </button>
-        <br>
-      </mat-card-content>
-    </form>
-  </mat-card>
+              <!-- Campo de código de acceso (segunda fase) -->
+              <div *ngIf="showCodeInput()">
+                <div class="security-validation">
+                  <div class="security-icon-container">
+                    <mat-icon class="security-icon">security</mat-icon>
+                  </div>
+                  <p class="security-text">Validación de código de seguridad para un acceso seguro</p>
+                </div>
+                <mat-form-field class="example-full-width" appearance="fill">
+                  <mat-label style="font-weight: bold;">CÓDIGO DE ACCESO</mat-label>
+                  <mat-icon matPrefix>vpn_key</mat-icon>
+                  <input matInput
+                         [type]="showPassword ? 'text' : 'password'"
+                         formControlName="accessCode"
+                         name="accessCode"
+                         [placeholder]="getMaskedCode() || 'Código configurado automáticamente'"
+                         [(ngModel)]="accessCode"
+                         class="access-code" />
+                  <button mat-icon-button
+                          matSuffix
+                          (click)="showPassword = !showPassword"
+                          type="button"
+                          matTooltip="{{ showPassword ? 'Ocultar' : 'Mostrar' }} código">
+                    <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <mat-error *ngIf="_formulario.get('accessCode')?.hasError('required')">
+                    El código de acceso es requerido
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Mensajes de error -->
+              <div *ngIf="error" class="error-message">
+                <mat-icon>error</mat-icon>
+                {{ error }}
+              </div>
+
+              <!-- Botones -->
+              <button mat-raised-button type="submit" class="add" [disabled]="_formulario.invalid || loading()">
+                <mat-spinner *ngIf="loading()" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+                <span *ngIf="!loading()">
+                  {{ showCodeInput() ? 'Verificar Código' : 'Iniciar Sesión' }}
+                </span>
+                <mat-icon *ngIf="!loading()">{{ showCodeInput() ? 'check' : 'arrow_forward' }}</mat-icon>
+              </button>
+
+              <button *ngIf="showCodeInput()" mat-raised-button type="button" class="volver" (click)="resetForm()">
+                Volver
+                <mat-icon>arrow_back</mat-icon>
+              </button>
+
+                <button mat-raised-button type="button" class="volver" (click)="resetForm()">
+                  Recuperar Contraseña
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
+             
+
+
+              <!--<button *ngIf="!showCodeInput()" mat-raised-button type="button" class="volver" (click)="closeDialog()">
+                Cancelar
+                <mat-icon>close</mat-icon>-->
+              <!--</button>-->
+            </mat-card-content>
+          </form>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

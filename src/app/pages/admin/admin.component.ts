@@ -17,6 +17,8 @@ import { GeojsonService } from '../../services/geojson.service';
 import Swal from 'sweetalert2';
 import { VisitsComponent } from './visits/visits.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { AdminPublicacionesComponent } from './admin-publicaciones/admin-publicaciones.component';
+import { AdminCursosComponent } from './admin-cursos/admin-cursos.component';
 
 // OpenLayers imports
 import OlMap from 'ol/Map';
@@ -45,7 +47,9 @@ import Overlay from 'ol/Overlay';
     FormsModule,
     MaterialModule,
     VisitsComponent,
-    DashboardComponent
+    DashboardComponent,
+    AdminPublicacionesComponent,
+    AdminCursosComponent
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'

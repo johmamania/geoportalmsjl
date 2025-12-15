@@ -21,13 +21,13 @@ export class MenuService {
   getMenuItems(): MenuItem[] {
     return [
       {
-        label: 'INICIO',
+        label: 'Inicio',
         route: '/inicio',
         icon: 'home',
         exact: true
       },
       {
-        label: 'GEOPORTAL SJL',
+        label: 'Geoportal SJL',
         route: '/geoportal',
         icon: 'map',
         routerLinkActiveOptions: {
@@ -38,21 +38,26 @@ export class MenuService {
         }
       },
       {
-        label: 'PUBLICACIONES',
+        label: 'Publicaciones',
         route: '/publicaciones',
         icon: 'library_books'
       },
       {
-        label: 'CURSOS',
+        label: 'Cursos',
         route: '/cursos',
         icon: 'school'
       },
       {
-        label: 'CONTACTANOS',
+        label: 'Contactanos',
         route: '/contactanos',
         icon: 'contact_mail'
       },
-    
+      {label: 'iniciar sesion',
+        route: '/login',
+        icon: 'login',
+      
+      }
+
     ];
   }
 

@@ -1,0 +1,140 @@
+.admin-publicaciones-container {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 200px);
+}
+
+.header-section {
+  margin-bottom: 24px;
+}
+
+.search-add-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 300px;
+}
+
+.add-button {
+  height: 56px;
+  white-space: nowrap;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: #666;
+  margin: 0;
+}
+
+.publicaciones-table {
+  width: 100%;
+}
+
+.publicaciones-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.publicaciones-table td,
+.publicaciones-table th {
+  padding: 16px;
+}
+
+.categoria-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-active {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.status-inactive {
+  color: #f44336;
+  font-weight: 500;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+  gap: 16px;
+}
+
+.no-data-message mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #ccc;
+}
+
+.no-data-message p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-publicaciones-container {
+    padding: 16px;
+  }
+
+  .search-add-row {
+    flex-direction: column;
+  }
+
+  .search-field {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .add-button {
+    width: 100%;
+  }
+
+  .publicaciones-table {
+    font-size: 12px;
+  }
+
+  .publicaciones-table td,
+  .publicaciones-table th {
+    padding: 8px;
+  }
+}
+

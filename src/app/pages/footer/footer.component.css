@@ -75,22 +75,34 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .footer {
+    padding: 8px 0;
+    height: 35px;
+    min-height: 35px;
+    max-height: 35px;
+  }
+
+  .footer-content {
+    padding: 0 10px;
+    gap: 2px;
+    height: 100%;
+    justify-content: center;
+  }
+
   .footer-text {
-    font-size: 14px;
-    gap: 8px;
+    font-size: 11px;
+    gap: 4px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    line-height: 1.2;
   }
 
   .footer-year {
-    font-size: 15px;
+    font-size: 12px;
   }
 
   .footer-divider {
     display: none;
-  }
-
-  .footer-text {
-    flex-direction: column;
-    gap: 4px;
   }
 }
 

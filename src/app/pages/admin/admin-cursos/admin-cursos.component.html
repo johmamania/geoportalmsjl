@@ -1,0 +1,109 @@
+<div class="admin-cursos-container">
+  <div class="header-section">
+    <div class="search-add-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar curso</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (keyup)="aplicarFiltro()" placeholder="Buscar por título, categoría, nivel o instructor...">
+        <mat-icon matPrefix>search</mat-icon>
+        <button mat-icon-button matSuffix *ngIf="searchTerm" (click)="limpiarBusqueda()" aria-label="Limpiar búsqueda">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="agregarCurso()" class="add-button">
+        <mat-icon>add</mat-icon>
+        Agregar Curso
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div *ngIf="cargando" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Cargando cursos...</p>
+    </div>
+
+    <table mat-table [dataSource]="dataSource" class="cursos-table" *ngIf="!cargando">
+      <!-- Columna Título -->
+      <ng-container matColumnDef="titulo">
+        <th mat-header-cell *matHeaderCellDef>Título</th>
+        <td mat-cell *matCellDef="let curso">{{ curso.titulo }}</td>
+      </ng-container>
+
+      <!-- Columna Categoría -->
+      <ng-container matColumnDef="categoria">
+        <th mat-header-cell *matHeaderCellDef>Categoría</th>
+        <td mat-cell *matCellDef="let curso">
+          <span class="categoria-badge">{{ curso.categoria }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Nivel -->
+      <ng-container matColumnDef="nivel">
+        <th mat-header-cell *matHeaderCellDef>Nivel</th>
+        <td mat-cell *matCellDef="let curso">{{ curso.nivel }}</td>
+      </ng-container>
+
+      <!-- Columna Instructor -->
+      <ng-container matColumnDef="instructor">
+        <th mat-header-cell *matHeaderCellDef>Instructor</th>
+        <td mat-cell *matCellDef="let curso">{{ curso.instructor }}</td>
+      </ng-container>
+
+      <!-- Columna Duración -->
+      <ng-container matColumnDef="duracion">
+        <th mat-header-cell *matHeaderCellDef>Duración</th>
+        <td mat-cell *matCellDef="let curso">{{ curso.duracion }}</td>
+      </ng-container>
+
+      <!-- Columna Precio -->
+      <ng-container matColumnDef="precio">
+        <th mat-header-cell *matHeaderCellDef>Precio</th>
+        <td mat-cell *matCellDef="let curso">{{ formatearPrecio(curso.precio) }}</td>
+      </ng-container>
+
+      <!-- Columna Estado -->
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let curso">
+          <span [class]="curso.estado ? 'status-active' : 'status-inactive'">
+            {{ curso.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let curso" class="actions-cell">
+          <button mat-icon-button color="primary" (click)="editarCurso(curso)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="eliminarCurso(curso)" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <!-- Mensaje cuando no hay datos -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          <div class="no-data-message">
+            <mat-icon>school</mat-icon>
+            <p>No se encontraron cursos</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [pageSizeOptions]="[10, 20, 50]"
+      [pageSize]="10"
+      showFirstLastButtons
+      *ngIf="!cargando">
+    </mat-paginator>
+  </div>
+</div>
+

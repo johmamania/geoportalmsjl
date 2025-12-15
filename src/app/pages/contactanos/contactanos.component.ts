@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MaterialModule } from '../../material/material.module';
 import { CommonModule } from '@angular/common';
-import { FooterComponent } from '../../components/footer/footer.component';
+import { FooterComponent } from '../footer/footer.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 interface ContactoInfo {

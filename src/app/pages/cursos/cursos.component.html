@@ -8,8 +8,8 @@
       <p class="subtitle">Capacitaciones y cursos disponibles para la comunidad</p>
     </div>
 
-    <div class="cursos-grid">
-      <mat-card *ngFor="let curso of cursos" class="curso-card">
+    <div class="cursos-grid" *ngIf="(cursos | async)?.length! > 0">
+      <mat-card *ngFor="let curso of cursos | async" class="curso-card">
         <mat-card-header>
           <div class="card-header-content">
             <div class="categoria-badge" [style.background-color]="getCategoriaColor(curso.categoria)">
@@ -40,7 +40,7 @@
             </div>
             <div class="info-item">
               <mat-icon class="info-icon">calendar_today</mat-icon>
-              <span>{{ curso.fechaInicio }}</span>
+              <span>{{ formatearFecha(curso.fecha_inicio) }}</span>
             </div>
           </div>
         </mat-card-content>
@@ -48,18 +48,25 @@
         <mat-card-actions>
           <div class="card-footer">
             <div class="precio-info">
-              <span *ngIf="curso.precio === 0" class="precio-gratis">Gratis</span>
+              <span *ngIf="!curso.precio || curso.precio === 0" class="precio-gratis">Gratis</span>
               <span *ngIf="curso.precio && curso.precio > 0" class="precio">
-                S/ {{ curso.precio }}
+                S/ {{ curso.precio.toFixed(2) }}
               </span>
             </div>
-            <button mat-raised-button color="primary" class="inscribirse-btn">
+            <button mat-raised-button color="primary" class="inscribirse-btn" (click)="inscribirse(curso)">
               <mat-icon>how_to_reg</mat-icon>
               Inscribirse
             </button>
           </div>
         </mat-card-actions>
       </mat-card>
+    </div>
+
+    <!-- Mensaje cuando no hay cursos -->
+    <div class="empty-state" *ngIf="(cursos | async)?.length === 0">
+      <mat-icon class="empty-icon">school</mat-icon>
+      <h3>No se encontraron cursos disponibles</h3>
+      <p>No hay cursos activos en este momento.</p>
     </div>
   </div>
 </div>

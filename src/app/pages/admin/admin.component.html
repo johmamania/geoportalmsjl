@@ -1,6 +1,6 @@
 <div class="admin-container">
   <mat-toolbar color="primary">
-    <span>Administración de Puntos Geográficos</span>
+    <span>Administración del Sistema</span>
     <span class="spacer"></span>
     <button mat-icon-button (click)="logout()" matTooltip="Cerrar Sesión">
       <mat-icon>logout</mat-icon>
@@ -102,6 +102,18 @@
       <mat-tab label="Dashboard">
         <ng-template matTabContent>
           <app-dashboard></app-dashboard>
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Publicaciones">
+        <ng-template matTabContent>
+          <app-admin-publicaciones></app-admin-publicaciones>
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Cursos">
+        <ng-template matTabContent>
+          <app-admin-cursos></app-admin-cursos>
         </ng-template>
       </mat-tab>
     </mat-tab-group>

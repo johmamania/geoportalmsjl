@@ -1,6 +1,6 @@
 <div class="principal-container">
   <!-- Imagen de fondo -->
-  <img src="assets/fondo.JPG" alt="Fondo" class="background-image">
+  <img src="assets/img/fondo.JPG" alt="Fondo" class="background-image">
 
   <!-- Sidenav Container (solo para móvil) -->
   <mat-sidenav-container class="main-sidenav-container" *ngIf="isMobile">
@@ -24,7 +24,7 @@
                 [routerLink]="[menuItem.route]"
                 routerLinkActive="mobile-nav-link-active"
                 [routerLinkActiveOptions]="menuItem.routerLinkActiveOptions || {exact: menuItem.exact || false}"
-                (click)="closeMenu()">
+                (click)="onMenuItemClick(menuItem, $event)">
           <mat-icon>{{ menuItem.icon }}</mat-icon>
           <span>{{ menuItem.label }}</span>
         </button>
@@ -41,7 +41,7 @@
         <!-- Barra de navegación verde oliva -->
         <mat-toolbar class="nav-toolbar">
           <div class="nav-toolbar-left">
-            <mat-icon class="nav-icon">domain</mat-icon>
+            <img src="assets/img/coed.png" alt="Logo" class="nav-icon" >
             <span class="nav-title"> Municipalidad Distrital de  <span class="nav-title-small">San Juan de Lurigancho, Portal de la Información</span></span>
           </div>
           <div class="nav-toolbar-right">
@@ -77,7 +77,7 @@
       <!-- Barra de navegación verde oliva -->
       <mat-toolbar class="nav-toolbar">
         <div class="nav-toolbar-left">
-          <mat-icon class="nav-icon">domain</mat-icon>
+          <img src="assets/img/coed.png" alt="Logo" class="nav-icon">
           <span class="nav-title"> Municipalidad Distrital de San Juan de Lurigancho, Portal de la Información</span>
         </div>
         <div class="nav-toolbar-right">
@@ -86,7 +86,8 @@
                   class="nav-link"
                   [routerLink]="[menuItem.route]"
                   routerLinkActive="nav-link-active"
-                  [routerLinkActiveOptions]="menuItem.routerLinkActiveOptions || {exact: menuItem.exact || false}">
+                  [routerLinkActiveOptions]="menuItem.routerLinkActiveOptions || {exact: menuItem.exact || false}"
+                  (click)="onMenuItemClick(menuItem, $event)">
             {{ menuItem.label }}
           </button>
         </div>
