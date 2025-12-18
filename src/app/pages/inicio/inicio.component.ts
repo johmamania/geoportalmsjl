@@ -16,7 +16,7 @@ import { FooterComponent } from '../footer/footer.component';
 })
 export class InicioComponent implements OnInit, AfterViewInit {
   categorias = this.categoriasService.getCategorias();
-  geojsonLayers = this.geojsonLayersService.getLayers();
+  geojsonLayers: GeoJsonLayer[] = [];
   showLegend = signal<boolean>(false);
 
   constructor(
@@ -34,6 +34,20 @@ export class InicioComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('❌ Error al registrar visita al sistema:', err);
+      }
+    });
+
+    // Cargar ubicaciones desde la base de datos
+    this.geojsonLayersService.getLayersObservable().subscribe({
+      next: (layers) => {
+        // Filtrar la capa "gps" (Límite SJL) de la lista visible
+        this.geojsonLayers = layers.filter(layer => layer.id !== 'gps');
+        console.log('✅ Ubicaciones cargadas desde la base de datos:', this.geojsonLayers.length);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar ubicaciones desde la base de datos:', error);
+        // Usar capas por defecto si hay error
+        this.geojsonLayers = this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
       }
     });
   }
