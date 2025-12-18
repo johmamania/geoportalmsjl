@@ -3,7 +3,7 @@
   <mat-sidenav-container class="sidenav-container">
     <mat-sidenav #sidenav mode="side" position="start" [opened]="menuOpen()" class="layers-sidenav">
       <div class="sidenav-header">
-        <h2>Capas GeoJSON</h2>
+        <h2>Ubicaciones</h2>
         <button mat-icon-button (click)="toggleMenu()">
           <mat-icon>close</mat-icon>
         </button>
@@ -36,11 +36,11 @@
           [class.menu-closed]="!menuOpen()">
             <mat-icon>menu</mat-icon>
           </button>
-          <button mat-icon-button (click)="irAMiUbicacion()"
+          <!--<button mat-icon-button (click)="irAMiUbicacion()"
           matTooltip="Mi ubicación"
           class="menu-toggle-btn location-btn">
             <mat-icon>location_on</mat-icon>
-          </button>
+          </button>-->
           <h1 class="toolbar-title"> </h1>
         </div>
         <div class="toolbar-right">
@@ -66,11 +66,45 @@
 
       <!-- Contenedor principal -->
       <div class="main-content">
-        <!-- Panel de lista de ubicaciones -->
+        <!-- Panel de capas GeoJSON (siempre visible en PC) -->
         <div class="list-panel">
           <div class="list-header">
+            <h3>Ubicaciones</h3>
+          </div>
+          <div class="list-content">
+            <!-- Lista de capas GeoJSON -->
+            <div class="layers-list">
+              <div *ngFor="let layer of visibleGeoJsonLayers"
+                   class="layer-list-item"
+                   [class.layer-selected]="isLayerVisible(layer.id)"
+                   (click)="toggleLayer(layer.id)">
+                <div class="layer-item">
+                  <div class="layer-circle" [class.circle-selected]="isLayerVisible(layer.id)"></div>
+                  <img [src]="layer.icon" [alt]="layer.name" class="layer-icon">
+                  <span>{{ layer.name }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón para ver ubicaciones cargadas -->
+            <button mat-raised-button
+                    class="show-locations-btn"
+                    (click)="showLocationsList.set(!showLocationsList())"
+                    [class.active]="showLocationsList()">
+              <mat-icon>{{ showLocationsList() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              <span>{{ showLocationsList() ? 'Ocultar' : 'Ver' }} Ubicaciones Cargadas</span>
+              <span class="count-badge-btn" *ngIf="featuresList.length > 0">{{ featuresList.length }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel de ubicaciones cargadas (se muestra al costado cuando está activo) -->
+        <div class="locations-panel" *ngIf="showLocationsList()">
+          <div class="list-header">
             <h3>Ubicaciones Cargadas</h3>
-            <span class="count-badge">{{ featuresList.length }}</span>
+            <button mat-icon-button (click)="showLocationsList.set(false)">
+              <mat-icon>close</mat-icon>
+            </button>
           </div>
           <div class="list-content">
             <div *ngIf="featuresList.length === 0" class="empty-state">
@@ -100,6 +134,13 @@
         <!-- Mapa -->
         <div class="map-container">
           <div id="geojson-map" class="map"></div>
+
+          <button mat-icon-button (click)="irAMiUbicacion()"
+          matTooltip="Mi ubicación"
+          class="menu-toggle-btn location-btn">
+            <mat-icon>location_on</mat-icon>
+          </button>
+
           <!-- Botón de leyenda -->
           <button mat-fab
                   class="legend-button"

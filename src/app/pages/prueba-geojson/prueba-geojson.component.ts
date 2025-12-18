@@ -56,6 +56,7 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   selectedLayerId = signal<string | null>(null);
   menuOpen = signal<boolean>(false);
   showLegend = signal<boolean>(false);
+  showLocationsList = signal<boolean>(false);
 
   // Tipos de mapas disponibles
   mapTypes = [
@@ -77,21 +78,33 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     private geojsonService: GeojsonService
   ) {
     // Obtener las capas del servicio y filtrar 'gps' de la lista visible
-    this.geoJsonLayers = this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
+    // Cargar capas desde Supabase
+    this.geojsonLayersService.getLayersObservable().subscribe({
+      next: (layers) => {
+        this.geoJsonLayers = layers.filter(layer => layer.id !== 'gps');
+      },
+      error: (error) => {
+        console.error('Error al cargar capas desde Supabase:', error);
+        // Usar capas por defecto si hay error
+        this.geoJsonLayers = this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
+      }
+    });
   }
 
   /**
    * Obtiene las capas visibles excluyendo 'gps' (Límite SJL)
    */
   get visibleGeoJsonLayers(): GeoJsonLayer[] {
-    return this.geojsonLayersService.getLayers().filter(layer => layer.id !== 'gps');
+    return this.geoJsonLayers;
   }
 
   /**
    * Obtiene todas las capas GeoJSON (incluyendo 'gps' para la leyenda)
    */
   get allGeoJsonLayers(): GeoJsonLayer[] {
-    return this.geojsonLayersService.getLayers();
+    // Incluir la capa GPS si existe
+    const gpsLayer = this.geojsonLayersService.getLayers().find(l => l.id === 'gps');
+    return gpsLayer ? [gpsLayer, ...this.geoJsonLayers] : this.geoJsonLayers;
   }
 
   /**
@@ -452,6 +465,18 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     const layerConfig = this.geoJsonLayers.find(l => l.id === layerId);
     if (!layerConfig) return;
 
+    // Si se está activando una capa, desactivar todas las demás primero
+    if (!layerConfig.visible) {
+      // Desactivar todas las capas visibles excepto la que se va a activar
+      this.geoJsonLayers.forEach(layer => {
+        if (layer.id !== layerId && layer.visible && layer.id !== 'gps') {
+          layer.visible = false;
+          this.removeGeoJsonLayer(layer.id);
+        }
+      });
+    }
+
+    // Alternar la visibilidad de la capa seleccionada
     layerConfig.visible = !layerConfig.visible;
 
     if (layerConfig.visible) {

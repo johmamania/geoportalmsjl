@@ -2,7 +2,7 @@
   width: 100%;
   height: 100vh;
   display: flex;
-  margin-top: 70px !important;
+  margin-top: 55px !important;
   flex-direction: column;
   overflow: hidden;
   position: fixed;
@@ -21,7 +21,7 @@
 }
 
 .layers-sidenav {
-  width: 300px;
+  width: 230px;
   background: white;
   overflow: hidden;
   display: flex;
@@ -79,6 +79,18 @@
   align-items: center;
   gap: 12px;
   width: 100%;
+  flex-wrap: wrap;
+}
+
+.layer-item span {
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .layer-circle {
@@ -125,7 +137,7 @@
   z-index: 1000;
   gap: 16px;
   flex-shrink: 0;
-  min-height: 64px;
+  height: 28px;
 }
 
 .toolbar-left {
@@ -144,6 +156,7 @@
 .menu-toggle-btn {
   color: #333;
   transition: color 0.3s ease;
+  display: none; /* Oculto por defecto en PC */
 }
 
 .menu-toggle-btn.menu-open {
@@ -156,10 +169,18 @@
 
 .menu-toggle-btn.location-btn {
   color: #F44336; /* Rojo para el botón de ubicación */
+  position: absolute;
+  bottom: 148px; /* 80px (leyenda) + 56px (altura mat-fab) + 12px (espacio) */
+  right: 15px;
+  z-index: 1000;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: block !important; /* Siempre visible en PC y móvil */
 }
 
 .menu-toggle-btn.location-btn:hover {
   color: #D32F2F; /* Rojo más oscuro en hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .toolbar-title {
@@ -250,9 +271,9 @@ mat-menu-item {
 }
 
 .list-panel {
-  width: 300px;
-  min-width: 200px;
-  max-width: 450px;
+  width: 230px;
+
+
   height: 88%;
   background: white;
   border-right: 1px solid #e0e0e0;
@@ -293,7 +314,100 @@ mat-menu-item {
 .list-content {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Lista de capas GeoJSON */
+.layers-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.layers-list .layer-list-item {
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 4px 0;
+  transition: background-color 0.2s ease;
+  padding: 8px 12px;
+}
+
+.layers-list .layer-list-item:hover {
+  background-color: rgba(74, 145, 226, 0.452) !important;
+}
+
+.layers-list .layer-list-item.layer-selected {
+  background-color: rgba(74, 226, 87, 0.418);
+}
+
+/* Botón para mostrar/ocultar ubicaciones cargadas */
+.show-locations-btn {
+  width: 100%;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.show-locations-btn:hover {
+  background: #e8f4f8;
+  border-color: #4A90E2;
+  color: #4A90E2;
+}
+
+.show-locations-btn.active {
+  background: #4A90E2;
+  color: white;
+  border-color: #4A90E2;
+}
+
+.show-locations-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.count-badge-btn {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.show-locations-btn:not(.active) .count-badge-btn {
+  background: #4A90E2;
+  color: white;
+}
+
+/* Panel de ubicaciones cargadas (al costado) */
+.locations-panel {
+  width: 280px;
+  height: 88%;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  z-index: 100;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .empty-state {
@@ -556,12 +670,17 @@ mat-menu-item {
   .legend-button {
     width: 48px;
     height: 48px;
+    bottom: 70px;
   }
 
   .legend-button mat-icon {
     font-size: 24px;
     width: 24px;
     height: 24px;
+  }
+
+  .menu-toggle-btn.location-btn {
+    bottom: 130px; /* 70px (leyenda) + 48px (altura) + 12px (espacio) */
   }
 }
 
@@ -655,9 +774,20 @@ mat-menu-item {
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* Mostrar el botón del menú en tablets y teléfonos */
+  .menu-toggle-btn {
+    display: block !important;
+  }
+
+  /* Ocultar el botón y el panel de ubicaciones en móviles */
+  .show-locations-btn,
+  .locations-panel {
+    display: none;
+  }
+
   .toolbar {
     padding: 8px 12px;
-    min-height: 56px;
+    height: 28px;
     flex-wrap: nowrap;
   }
 
@@ -725,6 +855,10 @@ mat-menu-item {
     transform: translateX(0);
   }
 
+  .locations-panel {
+    display: none;
+  }
+
   .map-container {
     width: 100%;
   }
@@ -733,7 +867,7 @@ mat-menu-item {
 @media (max-width: 480px) {
   .toolbar {
     padding: 6px 8px;
-    min-height: 48px;
+    height: 28px;
   }
 
   .menu-toggle-btn {

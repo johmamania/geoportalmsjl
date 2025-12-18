@@ -1,0 +1,50 @@
+<div class="leer-publicacion-container">
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="header-content">
+      <div class="categoria-badge" [style.background-color]="getCategoriaColor(publicacion.categoria)">
+        {{ publicacion.categoria }}
+      </div>
+      <button mat-icon-button (click)="cerrar()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="dialog-content">
+    <!-- Imagen si existe -->
+    <div class="imagen-container" *ngIf="publicacion.imagenruta">
+      <img [src]="publicacion.imagenruta" [alt]="publicacion.titulo" class="publicacion-imagen">
+    </div>
+
+    <!-- Título -->
+    <h1 class="publicacion-titulo">{{ publicacion.titulo }}</h1>
+
+    <!-- Información adicional -->
+    <div class="publicacion-meta">
+      <div class="meta-item">
+        <mat-icon class="meta-icon">person</mat-icon>
+        <span>{{ publicacion.autor }}</span>
+      </div>
+      <div class="meta-item">
+        <mat-icon class="meta-icon">calendar_today</mat-icon>
+        <span>{{ publicacion.fecha }}</span>
+      </div>
+    </div>
+
+    <!-- Descripción completa -->
+    <div class="publicacion-descripcion">
+      <p>{{ publicacion.descripcion }}</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="dialog-footer">
+    <button mat-raised-button color="primary" (click)="cerrar()" class="cerrar-btn">
+      <mat-icon>close</mat-icon>
+      Cerrar
+    </button>
+  </div>
+</div>
+

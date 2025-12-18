@@ -1,0 +1,302 @@
+INSTRUCCIONES Y RESUMEN TÉCNICO DEL SISTEMA
+===========================================
+
+1. Tecnologías principales utilizadas
+-------------------------------------
+
+- Frontend
+  - Angular (standalone components, Angular Signals, Routing)
+  - TypeScript
+  - HTML5 y CSS3 (incluyendo media queries responsive)
+  - Angular Material
+    - `MatToolbar`, `MatIcon`, `MatButton`, `MatDialog`, `MatCard`,
+      `MatTable`, `MatPaginator`, `MatFormField`, `MatInput`, `MatTabs`, etc.
+  - RxJS (Observables para servicios y listas)
+
+- Mapas y geodatos
+  - OpenLayers
+    - Mapas base
+    - Capas vectoriales y raster
+    - Carga y edición de GeoJSON (puntos / ubicaciones)
+    - Interacciones: `Modify`, `Draw`, selección de features, popups flotantes
+  - GeoJSON (formato para capas de ubicaciones y límite SJL)
+
+- Backend como servicio
+  - Supabase
+    - Autenticación (potencial)
+    - Base de datos PostgreSQL (tablas `estadisticas`, `msjl_publicaciones`, `msjl_cursos`, etc.)
+    - Storage para archivos GeoJSON en el bucket `data` (carpeta `geojson/`)
+    - RPC / Functions en PostgreSQL para lógica de negocio
+
+- Servicios externos de rutas
+  - OpenRouteService API
+    - URL base: `https://api.openrouteservice.org/v2/directions/PROFILE`
+    - Uso con API key configurada en variables de entorno
+    - Respuesta en GeoJSON para dibujar rutas
+  - OSRM API (fallback cuando se agotan las 2000 peticiones de OpenRouteService)
+    - Se usa para calcular rutas de emergencia
+    - En modo a pie se multiplica el tiempo por 7 para ajustar duración
+
+- Librerías auxiliares
+  - SweetAlert2
+    - Notificaciones amigables para el usuario (éxito, error, confirmaciones)
+    - Posicionamiento centrado en pantalla
+  - Navegador
+    - `navigator.geolocation` para "Mi ubicación"
+    - `localStorage` para conteo de visitas por dispositivo/día
+
+
+2. Componentes y páginas principales (Angular)
+---------------------------------------------
+
+- Mapas y geoportal
+  - `PruebaGeojsonComponent`
+    - Mapa principal con capas GeoJSON
+    - Botón "Mi ubicación"
+    - Botón de leyenda (popup con tipos de ubicaciones e íconos)
+    - Toolbar con tipos de mapa y control de capas
+    - Rutas con OpenRouteService/OSRM
+  - `InicioComponent`
+    - Pantalla inicial con categorías, botón "Mi ubicación"
+    - Leyenda flotante (icono) reposicionada varias veces según requerimientos
+
+- Administración
+  - `AdminComponent`
+    - Pestañas:
+      - Administración de Ubicación (editor GeoJSON con OpenLayers)
+      - Cantidad de Visitas (`VisitsComponent`)
+      - Dashboard (potencial)
+      - Publicaciones (`AdminPublicacionesComponent`)
+      - Cursos (`AdminCursosComponent`)
+  - `AdminPublicacionesComponent`
+    - CRUD completo sobre `msjl_publicaciones`
+    - Listado con `MatTable` + `MatPaginator` (10 por página)
+    - Buscador
+    - Acciones: Agregar / Editar / Eliminar (dialogs)
+  - `RegistrarPublicacionesComponent`
+    - Formulario (en `MatDialog`) para crear/editar publicaciones
+  - `AdminCursosComponent`
+    - CRUD sobre `msjl_cursos`
+    - Listado con tabla, paginación, búsqueda
+  - `AgregarCursoComponent`
+    - Formulario (dialog) para crear/editar cursos
+
+- Público
+  - `PublicacionesComponent`
+    - Lista pública de publicaciones activas
+    - Mensaje cuando no hay publicaciones: "No se encontraron publicaciones registradas"
+  - `CursosComponent`
+    - Lista sólo de cursos activos (consultando `getCursosActivos`)
+
+- Layout y navegación
+  - `LayoutComponent`
+    - Toolbar general del sitio
+    - Menú principal (datos desde `MenuService`)
+    - Ícono de dominio reemplazado por `assets/img/coed.png` (55x55 px)
+    - Texto: "Municipalidad Distrital de San Juan de Lurigancho, Portal de la Información"
+  - `MenuService`
+    - Ítem de menú "iniciar sesion" dirigido a la ruta `/login`
+
+- Autenticación / Acceso
+  - `LoginComponent`
+    - Página completa (no dialog)
+    - Diseño dos columnas:
+      - Izquierda: imagen (`assets/img/loguin.png`), título y tarjetas de categorías de cursos
+      - Derecha: formulario de Iniciar Sesión / Registrarse
+    - Toggle superior entre "Iniciar Sesión" y "Registrarse"
+    - Formularios con validaciones y estilos profesionales
+    - Segunda fase de login con "código de seguridad" y mensaje de validación
+
+
+3. Servicios Angular principales
+--------------------------------
+
+- `RoutingService` (nombre aproximado según contexto)
+  - Calcula rutas con OpenRouteService primero
+  - Si supera el límite de 2000 peticiones gratuitas, usa OSRM como fallback
+  - Devuelve rutas en formato GeoJSON para OpenLayers
+  - Ajusta duración al caminar (multiplica por 7 en OSRM)
+
+- `GeojsonService`
+  - Lista y carga archivos GeoJSON desde Supabase Storage
+  - Bucket: `data`
+  - Carpeta: `geojson/`
+  - Uso correcto de:
+    - `getPublicUrl()` para URLs públicas
+    - `download()` con rutas relativas cuando es necesario
+    - `upload()` con `upsert: true` y `contentType: 'application/geo+json'` para guardar cambios
+
+- `PublicacionesService`
+  - Tabla: `msjl_publicaciones`
+  - Métodos:
+    - `getPublicaciones()`
+    - `getPublicacionById(id)`
+    - `createPublicacion(data)`
+    - `updatePublicacion(id, data)`
+    - `deletePublicacion(id)`
+
+- `CursosAdminService`
+  - Tabla: `msjl_cursos`
+  - Métodos:
+    - `getCursos()`
+    - `getCursosActivos()`
+    - `getCursoById(id)`
+    - `createCurso(data)`
+    - `updateCurso(id, data)`
+    - `deleteCurso(id)`
+
+- Servicio de estadísticas / visitas
+  - Usa Supabase RPC `incrementar_contador(nombre_input text)`
+  - Incrementa contador en la tabla `estadisticas`
+  - Llamadas:
+    - `incrementar_contador('visitas_sistema')` desde `InicioComponent`
+    - `incrementar_contador('visitas_mapas')` desde `PruebaGeojsonComponent`
+  - Control de frecuencia por dispositivo:
+    - Guarda en `localStorage` la fecha de última visita para evitar incrementos excesivos
+
+
+4. Tablas principales en Supabase
+---------------------------------
+
+NOTA: Se listan las tablas mencionadas explícitamente en el proyecto. Es posible que existan más tablas no detalladas aquí.
+
+- Tabla: `estadisticas`
+  - Campos esperados (aprox.):
+    - `id` (PK)
+    - `nombre` (text)  — valores típicos: `'visitas_sistema'`, `'visitas_mapas'`
+    - `contador` (integer)
+  - Función RPC asociada:
+    - `incrementar_contador(nombre_input text)`
+      - `UPDATE estadisticas SET contador = contador + 1 WHERE nombre = nombre_input;`
+
+- Tabla: `msjl_publicaciones`
+  - Campos (según formularios):
+    - `id` (PK)
+    - `titulo` (text)
+    - `descripcion` (text)
+    - `categoria` (text)
+    - `autor` (text)
+    - `fecha` (date/timestamp)
+    - `imagenruta` (text, ruta/URL de imagen)
+    - `activo` (boolean)
+
+- Tabla: `msjl_cursos`
+  - Campos (según formularios):
+    - `id` (PK)
+    - `titulo` (text)
+    - `descripcion` (text)
+    - `duracion` (text / int)
+    - `nivel` (text)
+    - `categoria` (text)
+    - `certificado` (boolean o text)
+    - `instructor` (text)
+    - `fechaInicio` (date)
+    - `imagen` (text, ruta/URL)
+    - `precio` (numeric)
+    - `estado` (text o boolean, usado para “activos”)
+
+- Otras tablas (no detalladas en este documento)
+  - Posibles tablas de ubicaciones, usuarios, etc., dependiendo de la configuración completa del proyecto.
+
+
+5. Almacenamiento de GeoJSON en Supabase Storage
+-----------------------------------------------
+
+- Bucket principal: `data`
+- Carpeta de trabajo: `geojson/`
+- Ejemplos de archivos:
+  - `data/geojson/acv_baja.geojson`
+  - Otros archivos de tipos de ubicación (puntos de interés, etc.)
+- Consideraciones:
+  - Supabase Storage NO acepta URLs completas en `download()`:
+    - Incorrecto: `supabase.storage.from('data').download('https://.../acv_baja.geojson')`
+    - Correcto: `supabase.storage.from('data').download('geojson/acv_baja.geojson')`
+  - Para subir:
+    - Convertir cadena GeoJSON a `Blob`
+    - Usar:
+      - `upload('geojson/archivo.geojson', blob, { upsert: true, contentType: 'application/geo+json' })`
+
+
+6. Enlaces y endpoints relevantes
+---------------------------------
+
+- Supabase (ejemplos)
+  - Dominio del proyecto (según errores reportados):
+    - `https://khecnaugsqmgxxfgsndu.supabase.co`
+  - Storage:
+    - Base: `https://khecnaugsqmgxxfgsndu.supabase.co/storage/v1/object`
+    - Ejemplo de objeto:
+      - `https://khecnaugsqmgxxfgsndu.supabase.co/storage/v1/object/data/geojson/acv_baja.geojson`
+    - IMPORTANTE: para las funciones del SDK, usar siempre rutas internas (`data/geojson/...`)
+
+- Rutas (direcciones)
+  - OpenRouteService:
+    - `https://api.openrouteservice.org/v2/directions/PROFILE?api_key=APIKEY&start=START&end=END`
+      - `PROFILE`: `driving-car`, `foot-walking`, `cycling-regular`, etc.
+      - `START`: `lng,lat`
+      - `END`: `lng,lat`
+  - OSRM (ejemplo genérico):
+    - `https://router.project-osrm.org/route/v1/driving/LNG1,LAT1;LNG2,LAT2?overview=full&geometries=geojson`
+    - (La URL exacta puede variar según configuración en el servicio de rutas)
+
+- Geoportal / Rutas en la app (Angular)
+  - Rutas internas (ejemplos):
+    - `/inicio`
+    - `/mapa` o ruta donde vive `PruebaGeojsonComponent` (depende de `pages.routes.ts`)
+    - `/admin`
+    - `/login`
+    - `/publicaciones`
+    - `/cursos`
+
+
+7. Comportamientos clave del sistema
+------------------------------------
+
+- Conteo de visitas
+  - Cada dispositivo incrementa:
+    - `visitas_sistema` al entrar a `InicioComponent` (una vez por día por dispositivo)
+    - `visitas_mapas` al usar el mapa principal (`PruebaGeojsonComponent`)
+  - Controlados vía `localStorage` + RPC Supabase.
+
+- Rutas en el mapa
+  - Color de la ruta: azul / celeste intuitivo
+  - Al seleccionar ubicación:
+    - Se muestra ícono celeste sobre la ubicación
+    - Botón “Cómo llegar” abre popup flotante con:
+      - Tipo de transporte (a pie, taxi, bicicleta)
+      - Tiempo y distancia
+      - Ícono correspondiente
+    - El popup:
+      - Es flotante y draggable
+      - Se puede cerrar con “X” (oculta popup pero mantiene ruta)
+      - Botón “Cerrar Ruta” limpia la ruta del mapa
+
+- Popup de leyenda
+  - Ícono de leyenda flotante (posición final: ~35px desde abajo y 15px desde la derecha, según ajustes)
+  - Al hacer clic, muestra popup con:
+    - Lista de tipos de ubicaciones
+    - Ícono y nombre completo de cada tipo
+
+- Capa “Límite SJL”
+  - Siempre cargada en el mapa
+  - No aparece en la lista de capas seleccionables por el usuario
+  - Protegida para que no se pueda desactivar desde la UI
+
+- Lista de capas GeoJSON
+  - Checkbox reemplazado por:
+    - Círculo que se pinta de azul cuando está seleccionado
+    - Efecto hover con transparencia
+  - Opacidad de hover y selección ajustada para mejor visibilidad.
+
+
+8. Notas finales
+----------------
+
+- El login está diseñado como página normal, NO como dialog.
+- La vista de login es completamente responsive:
+  - Desktop: dos columnas (70% imagen/contenido informativo, 30% formularios).
+  - Móvil: sólo se muestra la columna de formularios.
+- Este archivo es un resumen; si se agregan nuevas tablas o servicios,
+  se recomienda actualizarlo para mantener la documentación al día.
+
+

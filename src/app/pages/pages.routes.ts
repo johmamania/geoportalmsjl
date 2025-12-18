@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { InicioComponent } from './inicio/inicio.component';
-import { GeoportalComponent } from './geoportal/geoportal.component';
 import { PublicacionesComponent } from './publicaciones/publicaciones.component';
 import { ContactanosComponent } from './contactanos/contactanos.component';
 import { CursosComponent } from './cursos/cursos.component';

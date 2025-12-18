@@ -13,6 +13,10 @@ import { Router } from '@angular/router';
 import { MapSelectorDialogComponent, MapSelectorData } from './map-selector-dialog.component';
 import { GeojsonLayersService, GeoJsonLayer } from '../../services/geojson-layers.service';
 import { GeojsonService } from '../../services/geojson.service';
+import { GeojsonNombresService } from '../../services/geojson-nombres.service';
+import { SubirGeojsonComponent, SubirGeojsonData } from './subir-geojson/subir-geojson.component';
+import { SupabaseService } from '../../core/supabase.service';
+import { from } from 'rxjs';
 
 import Swal from 'sweetalert2';
 import { VisitsComponent } from './visits/visits.component';
@@ -30,7 +34,7 @@ import VectorSource from 'ol/source/Vector';
 import Feature from 'ol/Feature';
 import type { FeatureLike } from 'ol/Feature';
 import Point from 'ol/geom/Point';
-import { fromLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Style, Icon, Stroke, Fill } from 'ol/style';
 import { Modify } from 'ol/interaction';
@@ -90,6 +94,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   isMoveMode = signal(false);
   featureCount = signal(0);
   isSavingGeojson = signal(false);
+  featuresList: Feature[] = [];
+  showUbicacionesList = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -99,7 +105,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private router: Router,
     private geojsonLayersService: GeojsonLayersService,
-    private geojsonService: GeojsonService
+    private geojsonService: GeojsonService,
+    private geojsonNombresService: GeojsonNombresService,
+    private supabaseService: SupabaseService
   ) {
     this.pointForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
@@ -114,13 +122,43 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.categorias = this.categoriasService.getCategorias();
-    this.loadPoints();
-    this.mapDataService.getPoints().subscribe(points => {
-      this.updateDataSource(points);
-    });
+    //this.loadPoints();
+    //this.mapDataService.getPoints().subscribe(points => {
+    //  this.updateDataSource(points);
+    //});
 
-    // Cargar capas GeoJSON para el editor
-    this.geojsonLayers = this.geojsonLayersService.getLayers();
+    // Cargar capas GeoJSON desde Supabase
+    this.geojsonLayersService.getLayersObservable().subscribe({
+      next: (layers) => {
+        // Filtrar la capa "gps" (Límite SJL) de la lista visible
+        this.geojsonLayers = layers.filter(layer => layer.id !== 'gps');
+
+        // Cargar automáticamente el límite SJL en el mapa
+        const gpsLayer = layers.find(l => l.id === 'gps');
+        if (gpsLayer) {
+          // Inicializar mapa y cargar el límite SJL
+          setTimeout(() => {
+            this.initGeojsonMap();
+            this.loadGeojsonForEditing(gpsLayer);
+          }, 100);
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar capas desde Supabase:', error);
+        // Usar capas por defecto si hay error
+        const allLayers = this.geojsonLayersService.getLayers();
+        this.geojsonLayers = allLayers.filter(layer => layer.id !== 'gps');
+
+        // Cargar límite SJL si existe
+        const gpsLayer = allLayers.find(l => l.id === 'gps');
+        if (gpsLayer) {
+          setTimeout(() => {
+            this.initGeojsonMap();
+            this.loadGeojsonForEditing(gpsLayer);
+          }, 100);
+        }
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -129,19 +167,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  loadPoints(): void {
-    this.isLoading.set(true);
-    this.mapDataService.getPoints().subscribe({
-      next: (points) => {
-        this.updateDataSource(points);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Error al cargar puntos:', error);
-        this.isLoading.set(false);
-      }
-    });
-  }
+
 
   updateDataSource(points: MapPoint[]): void {
     this.allPoints = points; // Guardar todos los puntos
@@ -229,109 +255,10 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       category: formValue.category || undefined
     };
 
-    if (this.isEditMode() && this.editingPointId()) {
-      // Actualizar punto existente
-      this.mapDataService.updatePoint(this.editingPointId()!, pointData).subscribe({
-        next: () => {
-          this.isLoading.set(false);
-          Swal.fire({
-            icon: 'success',
-            title: '¡Actualizado con éxito!',
-            text: 'El punto ha sido actualizado correctamente',
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-            position: 'center'
-          });
-          this.closeDialog();
-          this.loadPoints();
-        },
-        error: (error) => {
-          console.error('Error al actualizar punto:', error);
-          this.isLoading.set(false);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo actualizar el punto',
-            confirmButtonColor: '#d32f2f'
-          });
-        }
-      });
-    } else {
-      // Crear nuevo punto
-      this.mapDataService.createPoint(pointData).subscribe({
-        next: () => {
-          this.isLoading.set(false);
-          Swal.fire({
-            icon: 'success',
-            title: '¡Guardado con éxito!',
-            text: 'El punto ha sido guardado correctamente',
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-            position: 'center'
-          });
-          this.closeDialog();
-          this.loadPoints();
-        },
-        error: (error) => {
-          console.error('Error al crear punto:', error);
-          this.isLoading.set(false);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo guardar el punto',
-            confirmButtonColor: '#d32f2f'
-          });
-        }
-      });
-    }
+
   }
 
-  deletePoint(point: MapPoint): void {
-    if (!point.id) return;
-
-    Swal.fire({
-      title: '¿Está seguro?',
-      text: `¿Desea eliminar el punto "${point.name}"?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d32f2f',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      reverseButtons: true
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.isLoading.set(true);
-        this.mapDataService.deletePoint(point.id!).subscribe({
-          next: () => {
-            this.isLoading.set(false);
-            Swal.fire({
-              icon: 'success',
-              title: '¡Eliminado con éxito!',
-              text: 'El punto ha sido eliminado correctamente',
-              timer: 3000,
-              timerProgressBar: true,
-              showConfirmButton: false,
-              position: 'center'
-            });
-            this.loadPoints();
-          },
-          error: (error) => {
-            console.error('Error al eliminar punto:', error);
-            this.isLoading.set(false);
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'No se pudo eliminar el punto',
-              confirmButtonColor: '#d32f2f'
-            });
-          }
-        });
-      }
-    });
-  }
+  
 
   closeDialog(): void {
     this.isEditMode.set(false);
@@ -581,9 +508,18 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // Actualizar contador de features
-    this.geojsonVectorSource.on('addfeature', () => this.updateFeatureCount());
-    this.geojsonVectorSource.on('removefeature', () => this.updateFeatureCount());
-    this.geojsonVectorSource.on('clear', () => this.updateFeatureCount());
+    this.geojsonVectorSource.on('addfeature', () => {
+      this.updateFeatureCount();
+      this.featuresList = this.geojsonVectorSource!.getFeatures();
+    });
+    this.geojsonVectorSource.on('removefeature', () => {
+      this.updateFeatureCount();
+      this.featuresList = this.geojsonVectorSource!.getFeatures();
+    });
+    this.geojsonVectorSource.on('clear', () => {
+      this.updateFeatureCount();
+      this.featuresList = [];
+    });
   }
 
   private loadGeojsonForEditing(layer: GeoJsonLayer): void {
@@ -607,6 +543,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
           // Limpiar features existentes
           this.geojsonVectorSource.clear();
+          this.featuresList = [];
 
           // Cargar features desde GeoJSON
           const format = new GeoJSON();
@@ -616,8 +553,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
           });
 
           this.geojsonVectorSource.addFeatures(features);
+          this.featuresList = features;
           this.updateFeatureCount();
-
           // Actualizar el estilo de la capa con el icono correcto
           this.updateVectorLayerStyle();
 
@@ -809,6 +746,178 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.popupOverlay) {
       this.popupOverlay.setPosition(undefined);
     }
+  }
+
+  abrirSubirArchivo(modo: 'nuevo' | 'reemplazar'): void {
+    const layer = this.selectedLayer();
+    const data: SubirGeojsonData = {
+      modo,
+      layerId: layer?.id,
+      nombreActual: layer?.name,
+      archivoActual: layer?.file
+    };
+
+    const dialogRef = this.dialog.open(SubirGeojsonComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.success) {
+        // Recargar las capas desde Supabase
+        this.geojsonLayersService.reloadLayers().subscribe({
+          next: (layers) => {
+            this.geojsonLayers = layers.filter(l => l.id !== 'gps');
+            // Si se reemplazó, recargar el GeoJSON
+            if (modo === 'reemplazar' && layer) {
+              // Buscar la capa actualizada
+              const updatedLayer = this.geojsonLayers.find(l => l.file === layer.file);
+              if (updatedLayer) {
+                this.loadGeojsonForEditing(updatedLayer);
+              }
+            }
+          },
+          error: (error) => {
+            console.error('Error al recargar capas:', error);
+          }
+        });
+      }
+    });
+  }
+
+  getFeatureName(feature: Feature): string {
+    const props = feature.getProperties();
+    return props['name'] || props['nombre'] || props['titulo'] || 'Sin nombre';
+  }
+
+  getFeatureCoordinates(feature: Feature): string {
+    const geometry = feature.getGeometry();
+    if (geometry instanceof Point) {
+      const coords = geometry.getCoordinates();
+      const lonLat = toLonLat(coords);
+      return `${lonLat[1].toFixed(6)}, ${lonLat[0].toFixed(6)}`;
+    }
+    return '';
+  }
+
+  eliminarGeojson(): void {
+    const layer = this.selectedLayer();
+    if (!layer) {
+      return;
+    }
+
+    // No permitir eliminar el límite SJL
+    if (layer.id === 'gps') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede eliminar',
+        text: 'El límite SJL no puede ser eliminado',
+        position: 'center'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Se eliminará el archivo "${layer.name}" (${layer.file}). Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      position: 'center'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.eliminarGeojsonConfirmado(layer);
+      }
+    });
+  }
+
+  private eliminarGeojsonConfirmado(layer: GeoJsonLayer): void {
+    // Eliminar el archivo de Storage usando el servicio de Supabase
+    from(
+      this.supabaseService.supabase.storage
+        .from('data')
+        .remove([`geojson/${layer.file}`])
+    ).subscribe({
+      next: ({ error: storageError }) => {
+        if (storageError) {
+          console.error('Error al eliminar archivo de Storage:', storageError);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo eliminar el archivo de Storage',
+            position: 'center'
+          });
+          return;
+        }
+
+        // Eliminar el registro de la tabla de nombres
+        this.geojsonNombresService.getNombreByArchivo(layer.file).subscribe({
+          next: (nombreRegistro) => {
+            if (nombreRegistro) {
+              this.geojsonNombresService.eliminarNombre(nombreRegistro.id).subscribe({
+                next: () => {
+                  this.recargarCapasDespuesEliminar(layer);
+                },
+                error: (error) => {
+                  console.error('Error al eliminar registro de nombres:', error);
+                  Swal.fire({
+                    icon: 'warning',
+                    title: 'Advertencia',
+                    text: 'El archivo se eliminó pero hubo un error al eliminar el registro',
+                    position: 'center'
+                  });
+                  this.recargarCapasDespuesEliminar(layer);
+                }
+              });
+            } else {
+              this.recargarCapasDespuesEliminar(layer);
+            }
+          },
+          error: (error) => {
+            console.error('Error al buscar registro:', error);
+            this.recargarCapasDespuesEliminar(layer);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error al eliminar archivo:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo eliminar el archivo',
+          position: 'center'
+        });
+      }
+    });
+  }
+
+  private recargarCapasDespuesEliminar(layer: GeoJsonLayer): void {
+    // Recargar las capas
+    this.geojsonLayersService.reloadLayers().subscribe({
+      next: (layers) => {
+        this.geojsonLayers = layers.filter(l => l.id !== 'gps');
+        this.selectedLayer.set(null);
+        this.geojsonVectorSource?.clear();
+        this.featuresList = [];
+        this.updateFeatureCount();
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Eliminado!',
+          text: `El archivo "${layer.name}" ha sido eliminado exitosamente`,
+          timer: 2000,
+          showConfirmButton: false,
+          position: 'center'
+        });
+      },
+      error: (error) => {
+        console.error('Error al recargar capas:', error);
+      }
+    });
   }
 
   ngOnDestroy(): void {

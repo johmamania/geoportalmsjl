@@ -19,25 +19,64 @@
               <mat-list>
                 <mat-list-item
                   *ngFor="let layer of geojsonLayers"
-                  [class.selected]="selectedLayer()?.id === layer.id"
-                  (click)="selectLayer(layer)"
-                  class="layer-item">
-                  <img matListItemAvatar [src]="layer.icon" [alt]="layer.name" class="layer-icon">
-                  <div matListItemTitle>{{ layer.name }}</div>
-                  <div matListItemLine>{{ layer.file }}</div>
+                  class="layer-list-item"
+                  [class.layer-selected]="selectedLayer()?.id === layer.id"
+                  (click)="selectLayer(layer)">
+                  <div class="layer-item">
+                    <div class="layer-circle" [class.circle-selected]="selectedLayer()?.id === layer.id"></div>
+                    <img [src]="layer.icon" [alt]="layer.name" class="layer-icon">
+                    <span>{{ layer.name }}</span>
+                  </div>
                 </mat-list-item>
               </mat-list>
+
+              <!-- Botón para mostrar ubicaciones cargadas -->
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="showUbicacionesList.set(!showUbicacionesList())"
+                class="show-ubicaciones-btn"
+                [disabled]="!selectedLayer() || featuresList.length === 0">
+                <mat-icon>{{ showUbicacionesList() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                {{ showUbicacionesList() ? 'Ocultar' : 'Ver' }} Ubicaciones Cargadas
+                <span class="count-badge" *ngIf="featuresList.length > 0">{{ featuresList.length }}</span>
+              </button>
+            </div>
+
+            <!-- Lista de ubicaciones (al costado de la lista de tipos) -->
+            <div class="ubicaciones-sidebar" *ngIf="showUbicacionesList() && selectedLayer() && featuresList.length > 0">
+              <div class="ubicaciones-header">
+                <h4>Ubicaciones Cargadas</h4>
+                <button mat-icon-button (click)="showUbicacionesList.set(false)" class="close-ubicaciones-btn">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="ubicaciones-content">
+                <mat-list class="features-list">
+                  <mat-list-item *ngFor="let feature of featuresList" class="feature-list-item">
+                    <div class="feature-content">
+                      <mat-icon class="feature-icon">place</mat-icon>
+                      <div class="feature-details">
+                        <div class="feature-name">{{ getFeatureName(feature) }}</div>
+                        <div class="feature-coords" *ngIf="getFeatureCoordinates(feature)">
+                          {{ getFeatureCoordinates(feature) }}
+                        </div>
+                      </div>
+                    </div>
+                  </mat-list-item>
+                </mat-list>
+              </div>
             </div>
 
             <!-- Mapa y controles (lado derecho) -->
             <div class="map-editor-section">
-              <div class="editor-header" *ngIf="selectedLayer()">
-                <div class="header-left">
-                  <h3>{{ selectedLayer()?.name }}</h3>
+              <div class="editor-header">
+                <div class="header-left" *ngIf="selectedLayer()">
+
                   <div class="layer-info">
                     <div class="info-item">
                       <mat-icon class="info-icon">description</mat-icon>
-                      <span><strong>Archivo:</strong> {{ selectedLayer()?.file }}</span>
+                      <span><strong>{{ selectedLayer()?.file }}</strong> </span>
                     </div>
                     <div class="info-item">
                       <mat-icon class="info-icon">location_on</mat-icon>
@@ -49,22 +88,32 @@
                   <button
                     mat-raised-button
                     color="accent"
-                    (click)="toggleAddMode()"
-                    [disabled]="isSavingGeojson() || !selectedLayer()"
-                    [class.active]="isAddMode()">
-                    <mat-icon>add_location</mat-icon>
-                    Nuevo
+                    (click)="abrirSubirArchivo('nuevo')"
+                    [disabled]="isSavingGeojson()">
+                    <mat-icon>cloud_upload</mat-icon>
+                    Subir Nuevo Archivo
                   </button>
                   <button
                     mat-raised-button
                     color="primary"
-                    (click)="saveGeojson()"
-                    [disabled]="isSavingGeojson() || !selectedLayer()">
-                    <mat-icon>save</mat-icon>
-                    Actualizar GeoJSON
+                    (click)="abrirSubirArchivo('reemplazar')"
+                    [disabled]="isSavingGeojson() || !selectedLayer()"
+                    *ngIf="selectedLayer()">
+                    <mat-icon>replace</mat-icon>
+                    Reemplazar Archivo
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="eliminarGeojson()"
+                    [disabled]="isSavingGeojson() || !selectedLayer()"
+                    matTooltip="Eliminar GeoJSON"
+                    *ngIf="selectedLayer()">
+                    <mat-icon>delete</mat-icon>
                   </button>
                 </div>
               </div>
+
               <div class="map-container" id="geojson-editor-map"></div>
               <!-- Popup para opciones de feature -->
               <div id="geojson-feature-popup" class="feature-popup" style="display: none;">
@@ -98,12 +147,12 @@
         </ng-template>
       </mat-tab>
 
-      <!-- Tab 3: Dashboard -->
+      <!-- Tab 3: Dashboard  --
       <mat-tab label="Dashboard">
         <ng-template matTabContent>
           <app-dashboard></app-dashboard>
         </ng-template>
-      </mat-tab>
+      </mat-tab> -->
 
       <mat-tab label="Publicaciones">
         <ng-template matTabContent>
@@ -112,6 +161,12 @@
       </mat-tab>
 
       <mat-tab label="Cursos">
+        <ng-template matTabContent>
+          <app-admin-cursos></app-admin-cursos>
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Usuarios">
         <ng-template matTabContent>
           <app-admin-cursos></app-admin-cursos>
         </ng-template>

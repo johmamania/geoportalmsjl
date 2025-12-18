@@ -1,0 +1,66 @@
+<div class="subir-geojson-container">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>{{ data.modo === 'nuevo' ? 'cloud_upload' : 'replace' }}</mat-icon>
+      {{ data.modo === 'nuevo' ? 'Subir Nuevo Archivo' : 'Reemplazar Archivo' }}
+    </h2>
+    <button mat-icon-button (click)="cancelar()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-content">
+    <form [formGroup]="archivoForm" class="upload-form">
+      <!-- Campo de nombre -->
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Nombre de la Ubicación</mat-label>
+        <mat-icon matPrefix>label</mat-icon>
+        <input matInput formControlName="nombre" placeholder="Ej: Hospitales, Escuelas, etc.">
+        <mat-error *ngIf="archivoForm.get('nombre')?.hasError('required')">
+          El nombre es requerido
+        </mat-error>
+        <mat-error *ngIf="archivoForm.get('nombre')?.hasError('minlength')">
+          El nombre debe tener al menos 3 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Selector de archivo -->
+      <div class="file-upload-section">
+        <input type="file" #fileInput accept=".geojson,application/geo+json" (change)="onFileSelected($event)" style="display: none;">
+        <button mat-raised-button type="button" color="primary" (click)="fileInput.click()" class="file-select-btn">
+          <mat-icon>attach_file</mat-icon>
+          {{ archivoSeleccionado ? 'Cambiar Archivo' : 'Seleccionar Archivo GeoJSON' }}
+        </button>
+        <div class="file-info" *ngIf="archivoSeleccionado">
+          <mat-icon class="file-icon">description</mat-icon>
+          <span class="file-name">{{ archivoSeleccionado.name }}</span>
+          <span class="file-size">({{ (archivoSeleccionado.size / 1024).toFixed(2) }} KB)</span>
+        </div>
+        <mat-error *ngIf="archivoForm.get('archivo')?.hasError('required') && archivoForm.touched">
+          Debe seleccionar un archivo
+        </mat-error>
+      </div>
+
+      <!-- Información -->
+      <div class="info-box">
+        <mat-icon class="info-icon">info</mat-icon>
+        <div class="info-text">
+          <p><strong>Formato requerido:</strong> Archivo GeoJSON (.geojson)</p>
+          <p><strong>Estructura:</strong> Debe ser un FeatureCollection válido</p>
+          <p *ngIf="data.modo === 'reemplazar'"><strong>Nota:</strong> El archivo actual será reemplazado</p>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="dialog-actions">
+    <button mat-button (click)="cancelar()" [disabled]="loading">
+      Cancelar
+    </button>
+    <button mat-raised-button color="primary" (click)="guardar()" [disabled]="loading || archivoForm.invalid">
+      <mat-icon>{{ data.modo === 'nuevo' ? 'upload' : 'save' }}</mat-icon>
+      {{ loading ? 'Guardando...' : (data.modo === 'nuevo' ? 'Guardar' : 'Reemplazar') }}
+    </button>
+  </div>
+</div>
+
