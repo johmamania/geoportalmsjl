@@ -35,30 +35,35 @@ export class GeojsonLayersService {
   private getIconByFileName(fileName: string): string {
     // Remover extensión .geojson
     const nameWithoutExt = fileName.replace('.geojson', '').toLowerCase();
-    
-    // Mapeo de nombres de archivo a iconos
+
+    // Mapeo de nombres de archivo a iconos (ordenados por especificidad: más específicos primero)
     const iconMap: { [key: string]: string } = {
       'sjl_limite': 'assets/icons/gps.png',
       'acv_baja': 'assets/icons/acv.png',
       'abastecimiento_agua': 'assets/icons/agua.png',
-      'agua': 'assets/icons/agua.png',
-      'albergues': 'assets/icons/albergue.png',
-      'albergue': 'assets/icons/albergue.png',
-      'hidrantes': 'assets/icons/hidrante.png',
-      'hidrante': 'assets/icons/hidrante.png',
       'puntos_reunion': 'assets/icons/reunion.png',
+      'albergues': 'assets/icons/albergue.png',
+      'hidrantes': 'assets/icons/hidrante.png',
+      'agua': 'assets/icons/agua.png',
+      'albergue': 'assets/icons/albergue.png',
+      'hidrante': 'assets/icons/hidrante.png',
       'reunion': 'assets/icons/reunion.png',
     };
 
-    // Buscar coincidencia exacta o parcial
+    // 1. Buscar coincidencia exacta primero
     if (iconMap[nameWithoutExt]) {
       return iconMap[nameWithoutExt];
     }
 
-    // Buscar coincidencia parcial (por ejemplo, si el archivo contiene alguna palabra clave)
-    for (const [key, icon] of Object.entries(iconMap)) {
-      if (nameWithoutExt.includes(key) || key.includes(nameWithoutExt)) {
-        return icon;
+    // 2. Buscar coincidencia parcial, priorizando las claves más largas (más específicas)
+    // Ordenar las claves por longitud descendente para que coincidencias más específicas tengan prioridad
+    const sortedKeys = Object.keys(iconMap).sort((a, b) => b.length - a.length);
+
+    for (const key of sortedKeys) {
+      // Solo buscar si el nombre del archivo contiene la clave completa
+      // Esto evita que "reunion" coincida con archivos que contienen "abastecimiento_agua"
+      if (nameWithoutExt.includes(key)) {
+        return iconMap[key];
       }
     }
 
