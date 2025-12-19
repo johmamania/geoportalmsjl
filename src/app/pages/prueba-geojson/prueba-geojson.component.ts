@@ -14,7 +14,7 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import MultiPoint from 'ol/geom/MultiPoint';
 import Polygon from 'ol/geom/Polygon';
-import { Style, Icon, Stroke, Fill } from 'ol/style';
+import { Style, Icon, Stroke, Fill, Circle } from 'ol/style';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay';
 import LineString from 'ol/geom/LineString';
@@ -45,8 +45,13 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   private currentLocationMarker?: Feature;
   private routeLayer?: VectorLayer<VectorSource>;
   private currentLocation: { latitude: number; longitude: number } | null = null;
+  private inicioOverlay?: Overlay;
+  private llegadaOverlay?: Overlay;
+  private minimizerButton?: HTMLElement;
   selectedTransportType = signal<string>('walking');
   selectedTransportName = signal<string>('A Pie');
+  routeMinimized = signal<boolean>(false);
+  routeData = signal<{ distance: string; duration: string; icon: string } | null>(null);
 
   // Lista de capas GeoJSON disponibles - Obtenidas del servicio
   geoJsonLayers: GeoJsonLayer[] = [];
@@ -195,9 +200,9 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   irAMiUbicacion(): void {
-    // Si ya tenemos la ubicación guardada y el mapa está inicializado, mostrarla directamente
+    // Si ya tenemos la ubicación guardada y el mapa está inicializado, mostrarla y centrar
     if (this.currentLocation && this.map) {
-      this.showUserLocationOnMap(this.currentLocation.latitude, this.currentLocation.longitude);
+      this.showUserLocationOnMap(this.currentLocation.latitude, this.currentLocation.longitude, true);
       return;
     }
 
@@ -222,15 +227,15 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         // Guardar la ubicación
         this.currentLocation = { latitude, longitude };
 
-        // Si el mapa está inicializado, mostrar la ubicación directamente
+        // Si el mapa está inicializado, mostrar la ubicación y centrar
         if (this.map) {
-          this.showUserLocationOnMap(latitude, longitude);
+          this.showUserLocationOnMap(latitude, longitude, true);
         } else {
           // Si el mapa no está inicializado, esperar a que se inicialice
           const checkMapInterval = setInterval(() => {
             if (this.map) {
               clearInterval(checkMapInterval);
-              this.showUserLocationOnMap(latitude, longitude);
+              this.showUserLocationOnMap(latitude, longitude, true);
             }
           }, 100);
 
@@ -399,7 +404,7 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     });
     this.map.addLayer(this.routeLayer);
 
-    // Obtener y marcar ubicación actual del usuario
+    // Obtener y marcar ubicación actual del usuario (sin centrar el mapa)
     this.getCurrentLocation();
 
     // Interacción de clic en el mapa
@@ -478,6 +483,12 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
 
     // Alternar la visibilidad de la capa seleccionada
     layerConfig.visible = !layerConfig.visible;
+
+    // En móvil, ocultar el menú cuando se selecciona una capa
+    const isMobile = window.innerWidth < 768;
+    if (isMobile && layerConfig.visible) {
+      this.menuOpen.set(false);
+    }
 
     if (layerConfig.visible) {
       this.loadGeoJsonLayer(layerConfig);
@@ -672,12 +683,22 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
         this.featuresList.push(...featuresToAdd);
 
         // Ajustar vista para mostrar todas las features
+        const isMobile = window.innerWidth < 768;
         if (allFeatures.length > 0) {
           const extent = vectorSource.getExtent();
-          this.map.getView().fit(extent, {
-            padding: [50, 50, 50, 50],
-            duration: 1000
-          });
+          // Si es la capa SJL (gps), siempre centrar el mapa en ella (por defecto)
+          if (layerConfig.id === 'gps') {
+            this.map.getView().fit(extent, {
+              padding: [50, 50, 50, 50],
+              duration: 1000
+            });
+          } else if (!isMobile) {
+            // Para otras capas, solo ajustar en PC
+            this.map.getView().fit(extent, {
+              padding: [50, 50, 50, 50],
+              duration: 1000
+            });
+          }
         }
       },
       error: (error) => {
@@ -775,8 +796,11 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
 
   /**
    * Muestra la ubicación del usuario en el mapa
+   * @param latitude Latitud
+   * @param longitude Longitud
+   * @param centerMap Si es true, centra el mapa en la ubicación. Si es false, solo marca la ubicación sin centrar.
    */
-  private showUserLocationOnMap(latitude: number, longitude: number): void {
+  private showUserLocationOnMap(latitude: number, longitude: number, centerMap: boolean = false): void {
     if (!this.map) {
       return;
     }
@@ -802,13 +826,18 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
       description: 'Ubicación actual'
     });
 
-    // Estilo para el marcador de ubicación actual usando icono rojo
+    // Estilo para el marcador de ubicación actual usando punto circular azul con centro blanco
+    // Usar SVG para crear el círculo azul con punto blanco en el centro
     this.currentLocationMarker.setStyle(new Style({
       image: new Icon({
-        anchor: [0.5, 0.5],
-        src: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-        scale: 0.3, // Ajustar para que el icono sea de 15x15px (el icono original es ~50px, 15/50 = 0.3)
-        opacity: 1
+        src: 'data:image/svg+xml;base64,' + btoa(`
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" fill="#4A90E2" stroke="#FFFFFF" stroke-width="2"/>
+            <circle cx="12" cy="12" r="4" fill="#FFFFFF"/>
+          </svg>
+        `),
+        scale: 1,
+        anchor: [0.5, 0.5]
       })
     }));
 
@@ -819,12 +848,14 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
       markerLayer.getSource()?.addFeature(this.currentLocationMarker);
     }
 
-    // Centrar el mapa en la ubicación del usuario
-    this.map.getView().animate({
-      center: center,
-      zoom: 16,
-      duration: 1000
-    });
+    // Centrar el mapa solo si se solicita explícitamente (cuando el usuario presiona el botón)
+    if (centerMap) {
+      this.map.getView().animate({
+        center: center,
+        zoom: 16,
+        duration: 1000
+      });
+    }
 
     console.log('Ubicación actual marcada:', { latitude, longitude });
   }
@@ -846,24 +877,32 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     const properties = feature.getProperties();
     const name = properties['Name'] || properties['name'] || 'Sin nombre';
 
+    // Detectar si es móvil
+    const isMobile = window.innerWidth < 768;
+    const baseWidth = isMobile ? 240 : 250; // Reducir 10px en móvil
+    const baseMaxWidth = isMobile ? 340 : 350; // Reducir 10px en móvil
+    const baseFontSize = isMobile ? 15 : 18; // Reducir 3px en móvil
+    const baseButtonFontSize = isMobile ? 11 : 14; // Reducir 3px en móvil
+
     popupElement.style.background = '#ffffff';
-    popupElement.style.borderRadius = '8px';
+    // Border-radius: esquina superior izquierda sin border-radius (0), las demás con 8px
+    popupElement.style.borderRadius = '0 8px 8px 8px';
     popupElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-    popupElement.style.minWidth = '250px';
-    popupElement.style.maxWidth = '350px';
+    popupElement.style.minWidth = `${baseWidth}px`;
+    popupElement.style.maxWidth = `${baseMaxWidth}px`;
     popupElement.style.position = 'absolute';
 
     const content = document.createElement('div');
     content.style.padding = '16px';
     content.style.paddingTop = '40px';
     content.innerHTML = `
-      <div style="font-weight: bold; font-size: 18px; margin-bottom: 20px; color: #1e3c72; text-align: center;">${name}</div>
+      <div style="font-weight: bold; font-size: ${baseFontSize}px; margin-bottom: 20px; color: #1e3c72; text-align: center;">${name}</div>
       <div style="display: flex; flex-direction: column; gap: 12px;">
-        <button id="btn-ver-info" style="padding: 12px 20px; background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <button id="btn-ver-info" style="padding: 12px 20px; background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: ${baseButtonFontSize}px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
           <span>ℹ️</span>
           <span>Ver Información</span>
         </button>
-        <button id="btn-como-llegar" style="padding: 12px 20px; background: linear-gradient(135deg, #3a9b37 0%, #1ba00f 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <button id="btn-como-llegar" style="padding: 12px 20px; background: linear-gradient(135deg, #3a9b37 0%, #1ba00f 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: ${baseButtonFontSize}px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
           <span>🗺️</span>
           <span>Cómo Llegar</span>
         </button>
@@ -924,8 +963,8 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     popupElement.style.visibility = 'visible';
     popupElement.style.opacity = '1';
 
-    // Configurar offset para el popup inicial
-    this.popupOverlay.setOffset([15, -15]);
+    // Configurar offset para el popup inicial - 5px de la ubicación seleccionada
+    this.popupOverlay.setOffset([5, -5]);
     this.popupOverlay.setPosition(coordinate);
     this.selectedFeature = feature;
 
@@ -964,11 +1003,20 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     const name = properties['Name'] || properties['name'] || 'Sin nombre';
     const description = properties['description'] || '';
 
+    // Detectar si es móvil
+    const isMobile = window.innerWidth < 768;
+    const baseWidth = isMobile ? 240 : 250; // Reducir 10px en móvil
+    const baseMaxWidth = isMobile ? 340 : 350; // Reducir 10px en móvil
+    const baseFontSize = isMobile ? 15 : 18; // Reducir 3px en móvil
+    const baseDescriptionFontSize = isMobile ? 11 : 14; // Reducir 3px en móvil
+    const baseCoordsFontSize = isMobile ? 9 : 12; // Reducir 3px en móvil
+
     popupElement.style.background = '#ffffff';
-    popupElement.style.borderRadius = '8px';
+    // Border-radius: esquina superior izquierda sin border-radius (0), las demás con 8px
+    popupElement.style.borderRadius = '0 8px 8px 8px';
     popupElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-    popupElement.style.minWidth = '250px';
-    popupElement.style.maxWidth = '350px';
+    popupElement.style.minWidth = `${baseWidth}px`;
+    popupElement.style.maxWidth = `${baseMaxWidth}px`;
     popupElement.style.position = 'relative';
 
     const content = document.createElement('div');
@@ -985,9 +1033,9 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     content.innerHTML = `
-      <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px; color: #1e3c72;">${name}</div>
-      ${cleanDescription ? `<div style="color: #666; margin-bottom: 10px; line-height: 1.5; max-height: 300px; overflow-y: auto;">${cleanDescription.substring(0, 500)}${cleanDescription.length > 500 ? '...' : ''}</div>` : ''}
-      <div style="color: #999; font-size: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+      <div style="font-weight: bold; font-size: ${baseFontSize}px; margin-bottom: 12px; color: #1e3c72;">${name}</div>
+      ${cleanDescription ? `<div style="color: #666; margin-bottom: 10px; line-height: 1.5; max-height: 300px; overflow-y: auto; font-size: ${baseDescriptionFontSize}px;">${cleanDescription.substring(0, 500)}${cleanDescription.length > 500 ? '...' : ''}</div>` : ''}
+      <div style="color: #999; font-size: ${baseCoordsFontSize}px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
         <strong>Coordenadas:</strong><br>
         ${this.getFeatureCoordinates(feature)}
       </div>
@@ -1039,6 +1087,8 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
 
     popupElement.appendChild(closer);
     popupElement.appendChild(content);
+    // Configurar offset para el popup - 5px de la ubicación seleccionada
+    this.popupOverlay.setOffset([5, -5]);
     this.popupOverlay.setPosition(coordinate);
   }
 
@@ -1053,6 +1103,9 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     if (!this.popupOverlay) return;
+
+    // Resetear estado minimizado al abrir el modal
+    this.routeMinimized.set(false);
 
     const popupElement = this.popupOverlay.getElement();
     if (!popupElement) return;
@@ -1117,6 +1170,48 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
     // Limpiar contenido anterior
     popupElement.innerHTML = '';
 
+    // Crear botón de minimizar
+    const minimizer = document.createElement('a');
+    minimizer.className = 'ol-popup-minimizer';
+    minimizer.href = '#';
+    minimizer.innerHTML = '−';
+    minimizer.addEventListener('click', (evt) => {
+      evt.preventDefault();
+      this.toggleRouteMinimize();
+      return false;
+    });
+    this.minimizerButton = minimizer;
+
+    minimizer.style.position = 'absolute';
+    minimizer.style.top = '8px';
+    minimizer.style.right = '40px';
+    minimizer.style.width = '28px';
+    minimizer.style.height = '28px';
+    minimizer.style.display = 'flex';
+    minimizer.style.alignItems = 'center';
+    minimizer.style.justifyContent = 'center';
+    minimizer.style.background = '#f5f5f5';
+    minimizer.style.borderRadius = '50%';
+    minimizer.style.color = '#333';
+    minimizer.style.fontSize = '24px';
+    minimizer.style.fontWeight = 'bold';
+    minimizer.style.textDecoration = 'none';
+    minimizer.style.cursor = 'pointer';
+    minimizer.style.transition = 'all 0.2s ease';
+    minimizer.style.zIndex = '1001';
+    minimizer.style.lineHeight = '1';
+
+    minimizer.onmouseenter = () => {
+      minimizer.style.background = '#e0e0e0';
+      minimizer.style.color = '#000';
+      minimizer.style.transform = 'scale(1.1)';
+    };
+    minimizer.onmouseleave = () => {
+      minimizer.style.background = '#f5f5f5';
+      minimizer.style.color = '#333';
+      minimizer.style.transform = 'scale(1)';
+    };
+
     // Crear botón de cerrar
     const closer = document.createElement('a');
     closer.className = 'ol-popup-closer';
@@ -1156,6 +1251,7 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
 
     // Agregar elementos en el orden correcto
     popupElement.appendChild(header);
+    popupElement.appendChild(minimizer);
     popupElement.appendChild(closer);
     popupElement.appendChild(content);
 
@@ -1293,6 +1389,9 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.routeLayer?.getSource()?.addFeature(routeFeature);
 
+        // Agregar etiquetas "Inicio" y "Llegada"
+        this.addRouteLabels(origin, dest);
+
         const distance = route.distance;
         const duration = route.duration;
 
@@ -1323,26 +1422,18 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
           transportIcon = '🚲';
         }
 
+        // Guardar datos para la vista compacta
+        this.routeData.set({
+          distance: distanceText,
+          duration: durationText,
+          icon: transportIcon
+        });
+
         if (routeInfo) {
-          routeInfo.innerHTML = `
-            <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
-              <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; justify-content: center;">
-                <span style="font-size: 24px;">${transportIcon}</span>
-                <span>${transportName}</span>
-              </div>
-              <div style="display: flex; justify-content: space-around; gap: 12px; margin-top: 12px;">
-                <div style="text-align: center; flex: 1;">
-                  <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Distancia</div>
-                  <div style="font-size: 20px; font-weight: bold;">${distanceText}</div>
-                </div>
-                <div style="width: 1px; background: rgba(255,255,255,0.3);"></div>
-                <div style="text-align: center; flex: 1;">
-                  <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Tiempo</div>
-                  <div style="font-size: 20px; font-weight: bold;">${durationText}</div>
-                </div>
-              </div>
-            </div>
-          `;
+          // Actualizar usando el método que maneja el estado minimizado
+          setTimeout(() => {
+            this.updateRouteInfoDisplay();
+          }, 0);
         }
 
         const extent = routeFeature.getGeometry()?.getExtent();
@@ -1369,6 +1460,84 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   private clearRoute(): void {
     if (this.routeLayer) {
       this.routeLayer.getSource()?.clear();
+    }
+    // Limpiar etiquetas
+    this.removeRouteLabels();
+  }
+
+  /**
+   * Agrega etiquetas "Inicio" y "Llegada" en los puntos de la ruta
+   */
+  private addRouteLabels(origin: [number, number], dest: [number, number]): void {
+    // Limpiar etiquetas anteriores
+    this.removeRouteLabels();
+
+    // Convertir coordenadas a EPSG:3857
+    const originCoord = fromLonLat(origin);
+    const destCoord = fromLonLat(dest);
+
+    // Crear etiqueta "Inicio"
+    const inicioElement = document.createElement('div');
+    inicioElement.className = 'route-label inicio-label';
+    inicioElement.innerHTML = '<div class="label-content">Inicio</div>';
+    inicioElement.style.cssText = `
+      background: #4A90E2;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      white-space: nowrap;
+      pointer-events: none;
+    `;
+
+    this.inicioOverlay = new Overlay({
+      element: inicioElement,
+      position: originCoord,
+      positioning: 'bottom-center',
+      offset: [0, -10],
+      stopEvent: false
+    });
+    this.map.addOverlay(this.inicioOverlay);
+
+    // Crear etiqueta "Llegada"
+    const llegadaElement = document.createElement('div');
+    llegadaElement.className = 'route-label llegada-label';
+    llegadaElement.innerHTML = '<div class="label-content">Llegada</div>';
+    llegadaElement.style.cssText = `
+      background: #3a9b37;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      white-space: nowrap;
+      pointer-events: none;
+    `;
+
+    this.llegadaOverlay = new Overlay({
+      element: llegadaElement,
+      position: destCoord,
+      positioning: 'bottom-center',
+      offset: [0, -10],
+      stopEvent: false
+    });
+    this.map.addOverlay(this.llegadaOverlay);
+  }
+
+  /**
+   * Remueve las etiquetas de la ruta
+   */
+  private removeRouteLabels(): void {
+    if (this.inicioOverlay) {
+      this.map.removeOverlay(this.inicioOverlay);
+      this.inicioOverlay = undefined;
+    }
+    if (this.llegadaOverlay) {
+      this.map.removeOverlay(this.llegadaOverlay);
+      this.llegadaOverlay = undefined;
     }
   }
 
@@ -1650,6 +1819,127 @@ export class PruebaGeojsonComponent implements OnInit, AfterViewInit, OnDestroy 
   getCurrentMapTypeIcon(): string {
     const mapType = this.mapTypes.find(mt => mt.id === this.selectedMapType());
     return mapType ? mapType.icon : 'map';
+  }
+
+  /**
+   * Alterna entre vista completa y compacta del modal de ruta
+   */
+  private toggleRouteMinimize(): void {
+    this.routeMinimized.set(!this.routeMinimized());
+    this.updateRouteInfoDisplay();
+  }
+
+  /**
+   * Actualiza la visualización de la información de la ruta según el estado minimizado
+   */
+  private updateRouteInfoDisplay(): void {
+    const routeInfo = document.getElementById('route-info');
+    if (!routeInfo) return;
+
+    const data = this.routeData();
+    if (!data) return;
+
+    const popupElement = this.popupOverlay?.getElement();
+    if (!popupElement) return;
+
+    if (this.routeMinimized()) {
+      // Vista compacta - responsive
+      const isMobile = window.innerWidth < 768;
+      const compactWidth = isMobile ? 'calc(100% - 32px)' : '300px';
+      const compactHeight = isMobile ? 'auto' : '35px';
+      const compactPadding = isMobile ? '8px' : '8px 12px';
+
+      routeInfo.innerHTML = `
+        <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; padding: ${compactPadding}; border-radius: 4px; display: flex; align-items: center; gap: 12px; font-size: 12px; height: ${compactHeight}; width: ${compactWidth}; max-width: ${compactWidth}; min-width: ${isMobile ? 'auto' : '300px'}; box-sizing: border-box;">
+          <span style="font-size: 20px; flex-shrink: 0;">${data.icon}</span>
+          <div style="display: flex; flex-direction: row; gap: 16px; flex: 1; align-items: center; justify-content: space-between;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 10px; opacity: 0.9;">Distancia</span>
+              <span style="font-weight: 600; white-space: nowrap; font-size: 14px;">${data.distance}</span>
+            </div>
+            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.3);"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 10px; opacity: 0.9;">Tiempo</span>
+              <span style="font-weight: 600; white-space: nowrap; font-size: 14px;">${data.duration}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Ocultar header y otros elementos del contenido
+      const header = popupElement.querySelector('.ol-popup-header') as HTMLElement;
+      const transportSection = popupElement.querySelector('div[style*="margin-bottom: 16px"]') as HTMLElement;
+      const btnCerrar = document.getElementById('btn-cerrar-ruta') as HTMLElement;
+      if (header) header.style.display = 'none';
+      if (transportSection) transportSection.style.display = 'none';
+      if (btnCerrar) btnCerrar.style.display = 'none';
+
+      // Actualizar botón minimizar a "+" y ajustar posición del botón cerrar
+      if (this.minimizerButton) {
+        this.minimizerButton.innerHTML = '+';
+        this.minimizerButton.style.top = '8px';
+        this.minimizerButton.style.right = '8px';
+      }
+      const closer = popupElement.querySelector('.ol-popup-closer') as HTMLElement;
+      if (closer) {
+        closer.style.display = 'none';
+      }
+
+      // Ajustar tamaño del popup
+      popupElement.style.minWidth = 'auto';
+      popupElement.style.maxWidth = '300px';
+      popupElement.style.width = '300px';
+      routeInfo.style.marginBottom = '0';
+      routeInfo.style.padding = '0';
+    } else {
+      // Vista completa
+      const transportName = this.selectedTransportName();
+      routeInfo.innerHTML = `
+        <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); color: white; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+          <div style="font-weight: bold; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; justify-content: center;">
+            <span style="font-size: 24px;">${data.icon}</span>
+            <span>${transportName}</span>
+          </div>
+          <div style="display: flex; justify-content: space-around; gap: 12px; margin-top: 12px;">
+            <div style="text-align: center; flex: 1;">
+              <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Distancia</div>
+              <div style="font-size: 20px; font-weight: bold;">${data.distance}</div>
+            </div>
+            <div style="width: 1px; background: rgba(255,255,255,0.3);"></div>
+            <div style="text-align: center; flex: 1;">
+              <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Tiempo</div>
+              <div style="font-size: 20px; font-weight: bold;">${data.duration}</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Mostrar header y otros elementos del contenido
+      const header = popupElement.querySelector('.ol-popup-header') as HTMLElement;
+      const transportSection = popupElement.querySelector('div[style*="margin-bottom: 16px"]') as HTMLElement;
+      const btnCerrar = document.getElementById('btn-cerrar-ruta') as HTMLElement;
+      if (header) header.style.display = 'block';
+      if (transportSection) transportSection.style.display = 'block';
+      if (btnCerrar) btnCerrar.style.display = 'block';
+
+      // Actualizar botón minimizar a "−" y mostrar botón cerrar
+      if (this.minimizerButton) {
+        this.minimizerButton.innerHTML = '−';
+        this.minimizerButton.style.top = '8px';
+        this.minimizerButton.style.right = '40px';
+      }
+      const closer = popupElement.querySelector('.ol-popup-closer') as HTMLElement;
+      if (closer) {
+        closer.style.display = 'flex';
+      }
+
+      // Restaurar tamaño del popup
+      popupElement.style.minWidth = '280px';
+      popupElement.style.maxWidth = '400px';
+      popupElement.style.width = 'auto';
+      routeInfo.style.marginBottom = '12px';
+      routeInfo.style.padding = '0';
+    }
   }
 }
 

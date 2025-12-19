@@ -168,7 +168,7 @@
 }
 
 .menu-toggle-btn.location-btn {
-  color: #F44336; /* Rojo para el botón de ubicación */
+  color: #4A90E2; /* Azul para el botón de ubicación */
   position: absolute;
   bottom: 148px; /* 80px (leyenda) + 56px (altura mat-fab) + 12px (espacio) */
   right: 15px;
@@ -179,8 +179,31 @@
 }
 
 .menu-toggle-btn.location-btn:hover {
-  color: #D32F2F; /* Rojo más oscuro en hover */
+  color: #357ABD; /* Azul más oscuro en hover */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.blue-dot-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #4A90E2;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  position: relative;
+}
+
+.blue-dot-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
 }
 
 .toolbar-title {

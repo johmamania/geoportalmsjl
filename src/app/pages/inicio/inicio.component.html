@@ -1,8 +1,14 @@
 <div class="inicio-container">
-  <video class="background-video" autoplay loop playsinline muted #backgroundVideo>
+  <!-- Video de fondo para PC -->
+  <video class="background-video" autoplay loop playsinline muted #backgroundVideo *ngIf="!isMobile()">
     <source src="assets/video/VIDEO_INICIO.mp4" type="video/mp4">
     Tu navegador no soporta la reproducción de video. Por favor, actualiza tu navegador.
   </video>
+
+  <!-- Imágenes de fondo para móvil -->
+  <div class="background-images" *ngIf="isMobile()">
+    <img [src]="getCurrentImagePath()" [alt]="'Fondo ' + currentImageIndex()" class="background-image">
+  </div>
 
   <!-- Overlay para mejor legibilidad -->
   <div class="video-overlay"></div>

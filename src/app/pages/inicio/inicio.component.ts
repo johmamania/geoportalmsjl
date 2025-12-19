@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnInit, signal } from '@angular/core';
+import { Component, AfterViewInit, OnInit, OnDestroy, signal } from '@angular/core';
 import { MaterialModule } from '../../material/material.module';
 import { Router } from '@angular/router';
 import { CategoriasService } from '../../services/categorias.service';
@@ -14,10 +14,14 @@ import { FooterComponent } from '../footer/footer.component';
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.css'
 })
-export class InicioComponent implements OnInit, AfterViewInit {
+export class InicioComponent implements OnInit, AfterViewInit, OnDestroy {
   categorias = this.categoriasService.getCategorias();
   geojsonLayers: GeoJsonLayer[] = [];
   showLegend = signal<boolean>(false);
+  currentImageIndex = signal<number>(1);
+  isMobile = signal<boolean>(false);
+  private imageInterval?: any;
+  private resizeListener?: () => void;
 
   constructor(
     private router: Router,
@@ -27,6 +31,16 @@ export class InicioComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    // Detectar si es móvil
+    this.checkIfMobile();
+    this.resizeListener = () => this.checkIfMobile();
+    window.addEventListener('resize', this.resizeListener);
+
+    // Iniciar carrusel de imágenes si es móvil
+    if (this.isMobile()) {
+      this.startImageCarousel();
+    }
+
     // Incrementar visitas al sistema cuando se carga la página de inicio
     this.estadisticasService.incrementarVisitasSistema().subscribe({
       next: () => {
@@ -134,22 +148,85 @@ export class InicioComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const video: any = document.querySelector('.background-video');
-    if (video) {
-      video.muted = true;
-      // Intentar cargar y reproducir el video
-      video.play().catch((error: any) => {
-        console.warn('Video no disponible, usando fondo alternativo:', error);
-        // Ocultar el video si no se puede reproducir
-        video.style.display = 'none';
-      });
+    // Solo cargar video si no es móvil
+    if (!this.isMobile()) {
+      const video: any = document.querySelector('.background-video');
+      if (video) {
+        video.muted = true;
+        // Intentar cargar y reproducir el video
+        video.play().catch((error: any) => {
+          console.warn('Video no disponible, usando fondo alternativo:', error);
+          // Ocultar el video si no se puede reproducir
+          video.style.display = 'none';
+        });
 
-      // Manejar error de carga del video
-      video.addEventListener('error', () => {
-        console.warn('Error al cargar video, usando fondo alternativo');
-        video.style.display = 'none';
-      });
+        // Manejar error de carga del video
+        video.addEventListener('error', () => {
+          console.warn('Error al cargar video, usando fondo alternativo');
+          video.style.display = 'none';
+        });
+      }
     }
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar intervalo cuando se destruye el componente
+    if (this.imageInterval) {
+      clearInterval(this.imageInterval);
+    }
+    // Remover listener de resize
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener);
+    }
+  }
+
+  /**
+   * Verifica si el dispositivo es móvil
+   */
+  private checkIfMobile(): void {
+    const mobile = window.innerWidth < 768;
+    this.isMobile.set(mobile);
+
+    // Si cambia a móvil, iniciar carrusel; si cambia a PC, detenerlo
+    if (mobile && !this.imageInterval) {
+      this.startImageCarousel();
+    } else if (!mobile && this.imageInterval) {
+      this.stopImageCarousel();
+    }
+  }
+
+  /**
+   * Inicia el carrusel de imágenes que cambia cada 3 segundos
+   */
+  private startImageCarousel(): void {
+    // Limpiar intervalo anterior si existe
+    if (this.imageInterval) {
+      clearInterval(this.imageInterval);
+    }
+
+    // Cambiar imagen cada 3 segundos (3000ms)
+    this.imageInterval = setInterval(() => {
+      const currentIndex = this.currentImageIndex();
+      const nextIndex = currentIndex >= 7 ? 1 : currentIndex + 1;
+      this.currentImageIndex.set(nextIndex);
+    }, 3000);
+  }
+
+  /**
+   * Detiene el carrusel de imágenes
+   */
+  private stopImageCarousel(): void {
+    if (this.imageInterval) {
+      clearInterval(this.imageInterval);
+      this.imageInterval = undefined;
+    }
+  }
+
+  /**
+   * Obtiene la ruta de la imagen actual
+   */
+  getCurrentImagePath(): string {
+    return `assets/img/fondo/${this.currentImageIndex()}.jpg`;
   }
 
 }
